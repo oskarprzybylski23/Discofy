@@ -13,8 +13,6 @@ from pathlib import Path
 load_dotenv()
 
 scope = 'playlist-modify-public'
-# username = 'oskar_przybylski23'
-
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
@@ -23,32 +21,32 @@ for key, value in os.environ.items():
     print(f"{key}: {value}")
 
 def create_playlist():
-    oauth_object = spotipy.SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
-
+    # Create the authorization object
+    oauth_object = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope, cache_path=".token_cache")
     # Get the authorization URL
     auth_url = oauth_object.get_authorize_url()
-
     # Prompt the user to go to the authorization URL and authorize the app
-    print(f"Please go to this URL: {auth_url}")
     answer = messagebox.askyesno("Spotify Authentication",
                                  f"To authorize Spotify access, please go to {auth_url}. Would you like to open the URL in your web browser?")
     if answer:
         webbrowser.open(auth_url)
-        # Here you can wait for the user to input the code and return it
     else:
         return
 
     token_info = oauth_object.get_access_token()
-    print(token_info)
 
-    token = token_info['access_token']
-    spotify = spotipy.Spotify(auth=token)
+    if 'access_token' in token_info:
+        token = token_info['access_token']
+        print("Token:" + token)
+        spotify = spotipy.Spotify(auth=token)
+    else:
+        print("Authentication failed.")
 
-    # auth_manager = SpotifyClientCredentials()
-    # spotify = spotipy.Spotify(auth_manager=auth_manager)
+        # auth_manager = SpotifyClientCredentials()
+        # spotify = spotipy.Spotify(auth_manager=auth_manager)
 
     question_create = messagebox.askyesno("Spotify Authentication",
-                                          f"Authorized your Spoitfy account succesfully! Would you like to create a playlist now?")
+                                              f"Authorized your Spoitfy account succesfully! Would you like to create a playlist now?")
 
     if question_create:
         pass
