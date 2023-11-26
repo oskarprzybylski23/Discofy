@@ -2,6 +2,7 @@
 virtual
 .cache-oskar_przybylski23
 .cache
+.token_cache
 *.txt
 !requirements.txt
 *.env
