@@ -10,18 +10,23 @@ import webbrowser
 import os
 from pathlib import Path
 
-# from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyClientCredentials
 
 load_dotenv()
+
+client_id = os.getenv('SPOTIPY_CLIENT_ID')
+client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
+redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
+
+for key, value in os.environ.items():
+    print(f"{key}: {value}")
 
 def create_playlist():
 
     scope = 'playlist-modify-public'
     username = 'oskar_przybylski23'
 
-    client_id = os.getenv('SPOTIPY_CLIENT_ID')
-    client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-    redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
+
 
     oauth_object = spotipy.SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
 

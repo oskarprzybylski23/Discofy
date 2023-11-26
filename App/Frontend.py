@@ -3,7 +3,7 @@ from tkinter import messagebox
 from tkinter import simpledialog
 import App_Disc
 import App_Spot
-from App import import_collection
+from App_Disc import import_collection
 
 
 window=Tk()

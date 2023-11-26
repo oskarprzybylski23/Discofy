@@ -13,7 +13,7 @@ load_dotenv()
 
 consumer_key=os.getenv('discogs_consumer_key')
 consumer_secret=os.getenv('discogs_consumer_secret')
-
+print ("Discogs key:" + consumer_key)
 def import_collection():
     # supply details to the Client class
     d = discogs_client.Client(

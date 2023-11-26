@@ -3,6 +3,5 @@ virtual
 .cache-oskar_przybylski23
 .cache
 *.env
-*.txt
 *.csv
 __pycache__
