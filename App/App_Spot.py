@@ -130,6 +130,6 @@ def see_report():
     file = Path("export_report.txt")
     if file.exists():
         print ("True")
-        os.system("notepad.exe export_report.txt")
+        os.system("notepad.exe export_report.txt") # opens report in notepad (!works on windows only)
     else:
         messagebox.showwarning(title="Report not found", message="The report has not been created yet. You need to create a playlists first.")
