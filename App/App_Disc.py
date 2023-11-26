@@ -1,8 +1,5 @@
 import discogs_client
 import csv
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-from tkinter import *
 from tkinter import simpledialog
 from tkinter import messagebox
 import webbrowser
@@ -13,6 +10,7 @@ load_dotenv()
 
 consumer_key=os.getenv('discogs_consumer_key')
 consumer_secret=os.getenv('discogs_consumer_secret')
+
 print ("Discogs key:" + consumer_key)
 def import_collection():
     # supply details to the Client class

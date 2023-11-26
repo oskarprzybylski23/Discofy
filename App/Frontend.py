@@ -1,10 +1,6 @@
 from tkinter import *
-from tkinter import messagebox
-from tkinter import simpledialog
 import App_Disc
 import App_Spot
-from App_Disc import import_collection
-
 
 window=Tk()
 window.geometry("800x400")

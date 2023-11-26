@@ -1,18 +1,19 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyClientCredentials
 import csv
 import json
 from dotenv import load_dotenv
-from tkinter import *
 from tkinter import simpledialog
 from tkinter import messagebox
 import webbrowser
 import os
 from pathlib import Path
 
-from spotipy.oauth2 import SpotifyClientCredentials
-
 load_dotenv()
+
+scope = 'playlist-modify-public'
+# username = 'oskar_przybylski23'
 
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
@@ -22,12 +23,6 @@ for key, value in os.environ.items():
     print(f"{key}: {value}")
 
 def create_playlist():
-
-    scope = 'playlist-modify-public'
-    username = 'oskar_przybylski23'
-
-
-
     oauth_object = spotipy.SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
 
     # Get the authorization URL
