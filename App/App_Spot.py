@@ -43,19 +43,9 @@ def authenticate_spotify():
         token = token_info['access_token']
         print("Token:" + token)
         spotify = spotipy.Spotify(auth=token)
-    else:
-        print("Authentication failed.")
-
-        # auth_manager = SpotifyClientCredentials()  # spotify = spotipy.Spotify(auth_manager=auth_manager)
-
-    question_create = messagebox.askyesno(
-        "Spotify Authentication",
-        f"Authorized your Spoitfy account succesfully! Would you like to create a playlist now?"
-    )
-
-    if question_create:
         return spotify
     else:
+        print("Authentication failed!")
         return
 
 
@@ -71,6 +61,15 @@ def create_playlist():
     if not spotify:
         print("User authentication failed!")
         return
+
+    question_create = messagebox.askyesno(
+        "Spotify Authentication",
+        f"Authorized your Spotify account succesfully! Would you like to create a playlist now?"
+    )
+
+    if not question_create:
+        return
+
     # Create a list of releases
     playlist_data = read_playlist_data("collection_export.json")
 
