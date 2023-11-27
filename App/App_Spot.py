@@ -18,6 +18,11 @@ redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
 for key, value in os.environ.items():
     print(f"{key}: {value}")
 
+def read_playlist_data(file_path):
+    with open(file_path, 'r') as json_file:
+        playlist_data = json.load(json_file)
+    return playlist_data
+
 def create_playlist():
     # Create the authorization object
     oauth_object = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope, cache_path=".token_cache")
@@ -52,13 +57,7 @@ def create_playlist():
         return
 
     # Create a list of releases
-    with open('discogs_collection.csv', 'r') as collection:
-        reader = csv.reader(collection)
-
-        albums = [row[1] for row in reader]
-        collection.seek(0)
-        artists = [row[0] for row in reader]
-        releases = list(zip(artists, albums))
+    playlist_data = read_playlist_data("App/collection_export.json")
 
     # Create a new playlist
     playlist_name = "Discogs Record Collection"
@@ -73,9 +72,9 @@ def create_playlist():
     failed_export = []
 
     # Find and add tracks to the playlist
-    for release in releases:
-        artist = release[0]
-        title = release[1]
+    for release in playlist_data:
+        artist = release['artist']
+        title = release['title']
         result = spotify.search(q=f"artist:{artist} album:{title}", type="album")
 
         if result["albums"]["items"]:
