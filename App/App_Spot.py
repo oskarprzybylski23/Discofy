@@ -64,7 +64,7 @@ def create_playlist():
 
     question_create = messagebox.askyesno(
         "Spotify Authentication",
-        f"Authorized your Spotify account succesfully! Would you like to create a playlist now?"
+        f"Authorized your Spotify account successfully! Would you like to create a playlist now?"
     )
 
     if not question_create:
@@ -107,15 +107,18 @@ def create_playlist():
             print("Failed to add: " + artist + " - " + title)
             failed_export.append([artist, title])
 
-    #   Print some info
     print(
         "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
-    )  # currently showing number of albums as number of tracks, fix!
+    )
 
-    print("\n" + "Following albums failed to export or could not be found:")
-    for item in failed_export:
-        print(item[0] + "- " + item[1])
-    print("\n" + f"{len(failed_export)} albums failed to load")
+    # summary message if any albums failed to load
+    if len(failed_export) > 0:
+        print("\n" + "Following albums failed to export or could not be found:")
+        for item in failed_export:
+            print(item[0] + "- " + item[1])
+        print("\n" + f"{len(failed_export)} albums failed to load")
+    else:
+        pass
 
     # create a report txt file
     create_report(failed_export, tracks_number, albums_total, playlist_name)
@@ -124,22 +127,28 @@ def create_playlist():
 def create_report(failed_items, number_of_tracks, number_of_albums, name_of_playlist):
     with open('export_report.txt', 'w') as f:
         f.write(
-            "\n" + f" {number_of_tracks} tracks from {len(number_of_albums)} albums added to playlist '{name_of_playlist}'." + "\n" + "\n" + "Following albums failed to export or could not be found:" + "\n"
+            "\n" + f" {number_of_tracks} tracks from {len(number_of_albums)} albums added to playlist '{name_of_playlist}'." + "\n" + "\n"
         )
-        for item in failed_items:
-            f.write("\n" + item[0] + "- " + item[1])
-        f.write("\n" + "\n" + f"{len(failed_items)} albums failed to load")
-        f.write(
-            "\n" + "Album load may have failed due to incorrect album/artist name. In that case you can try manually changing names of the albums/artists in discogs_collection.csv file and trying again."
-        )
+
+        if len(failed_items) > 0:
+            f.write("f"{len(failed_items)} + "Following albums failed to export or could not be found:" + "\n")
+
+            for item in failed_items:
+                f.write("\n" + item[0] + "- " + item[1])
+
+            f.write(
+                "\n" + "Album load may have failed due to incorrect album/artist name. In that case you can try "
+                       "manually changing names of the albums/artists in discogs_collection.csv file and trying again."
+            )
 
     # show summary pop up message
     report_answer = messagebox.askyesno(
-        title="Spotify Export",
-        message="Playlist has been successfuly created. Not all of your records were succesfuly exported. They are either missing from Spotify or have not been found correctly. See report file for more info. Would you like to open it now?"
+        title="Playlist Created!",
+        message="Playlist has been successfully created. See report file for more info and to see any albums that could not be found in Spotify. Would "
+                "you like to open it now?"
     )
     if report_answer:
-        os.system("notepad.exe export_report.txt")
+        see_report()
     else:
         pass
 
@@ -156,5 +165,5 @@ def see_report():
     else:
         messagebox.showwarning(
             title="Report not found",
-            message="The report has not been created yet. You need to create a playlists first."
+            message="The report file has not been found. It is possible that playlist has not been created yet."
         )
