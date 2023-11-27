@@ -55,7 +55,7 @@ def read_playlist_data(file_path):
     return playlist_data
 
 
-def create_playlist():
+def create_playlist(label_loading, window):
     spotify = authenticate_spotify()
 
     if not spotify:
@@ -98,18 +98,28 @@ def create_playlist():
             tracks = spotify.album_tracks(album_id)["items"]
             track_uris = [track["uri"] for track in tracks]
             spotify.playlist_add_items(playlist["id"], track_uris)
-            print("Added: " + artist + " - " + title + ", id: " + album_id)
             albums_total.append(album_id)
             track_uris_total.append(track_uris)
             tracks_number = tracks_number + len(track_uris)
+            print("Added: " + artist + " - " + title + ", id: " + album_id)
+            message = f"Added: {artist} - {title}, id: {album_id}"
+            label_loading.config(text=message)
+            window.update_idletasks()  # Update the GUI
 
         else:
-            print("Failed to add: " + artist + " - " + title)
             failed_export.append([artist, title])
+            print("Failed to add: " + artist + " - " + title)
+            message = f"Failed to add: {artist} - {title}"
+            label_loading.config(text=message)
+            window.update_idletasks()  # Update the GUI
 
     print(
         "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
     )
+
+    summary_message = "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
+    label_loading.config(text=summary_message)
+    window.update_idletasks()
 
     # summary message if any albums failed to load
     if len(failed_export) > 0:
@@ -117,8 +127,16 @@ def create_playlist():
         for item in failed_export:
             print(item[0] + "- " + item[1])
         print("\n" + f"{len(failed_export)} albums failed to load")
+        summary_message = (
+            f"\n{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'\n"
+            f"{len(failed_export)} albums failed to load")
+        label_loading.config(text=summary_message)
+        window.update_idletasks()
     else:
-        pass
+        summary_message = (
+                "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'.")
+        label_loading.config(text=summary_message)
+        window.update_idletasks()
 
     # create a report txt file
     create_report(failed_export, tracks_number, albums_total, playlist_name)
@@ -127,17 +145,17 @@ def create_playlist():
 def create_report(failed_items, number_of_tracks, number_of_albums, name_of_playlist):
     with open('export_report.txt', 'w') as f:
         f.write(
-            "\n" + f" {number_of_tracks} tracks from {len(number_of_albums)} albums added to playlist '{name_of_playlist}'." + "\n" + "\n"
+            f"\n{number_of_tracks} tracks from {len(number_of_albums)} albums added to playlist '{name_of_playlist}'." + "\n\n"
         )
 
         if len(failed_items) > 0:
-            f.write("f"{len(failed_items)} + "Following albums failed to export or could not be found:" + "\n")
+            f.write(f"{len(failed_items)} Following albums failed to export or could not be found:" + "\n")
 
             for item in failed_items:
                 f.write("\n" + item[0] + "- " + item[1])
 
             f.write(
-                "\n" + "Album load may have failed due to incorrect album/artist name. In that case you can try "
+                "\n" + "Album load may have failed due to incorrect album/artist name. In that case, you can try "
                        "manually changing names of the albums/artists in discogs_collection.csv file and trying again."
             )
 
