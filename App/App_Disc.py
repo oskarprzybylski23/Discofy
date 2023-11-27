@@ -1,3 +1,4 @@
+import json
 import discogs_client
 import csv
 from tkinter import simpledialog
@@ -64,13 +65,22 @@ def import_collection():
     for index, item in enumerate(collection):
         print(index, item)
 
-    create_csv(collection)
+    export_to_json(collection)
+    export_to_csv(collection)
 
     return collection
 
-def create_csv(list):
+
+def export_to_json(collection, filename="collection_export.json"):
+    app_folder = os.path.dirname(os.path.abspath(__file__))
+    filepath = os.path.join(app_folder, filename)
+
+    with open(filepath, 'w') as json_file:
+        json.dump(collection, json_file, indent=2)
+
+def export_to_csv(list, filename="discogs_collection.csv"):
     #   Append data to csv
-    filename = "discogs_collection.csv"
+    filename = filename
     f = open(filename, 'w+')
     f.close
 
