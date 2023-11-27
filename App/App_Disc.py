@@ -15,7 +15,7 @@ consumer_secret = os.getenv('discogs_consumer_secret')
 print("Discogs key:" + consumer_key)
 
 
-def import_collection():
+def authorize_discogs():
     # supply details to the Client class
     d = discogs_client.Client(
         'my_user_agent/1.0', consumer_key=consumer_key, consumer_secret=consumer_secret
@@ -44,8 +44,20 @@ def import_collection():
 
     me = d.identity()  # authorized username
 
+    if not me:
+        return
+
     print('user authorized:')
     print(me)
+
+    return me
+
+
+def import_collection():
+    me = authorize_discogs()
+
+    if not me:
+        return
 
     collection_size = me.collection_folders[0].count
     print("records in collection: " + str(collection_size))

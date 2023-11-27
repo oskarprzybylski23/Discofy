@@ -1,3 +1,8 @@
+from tkinter import *
+import App_Disc
+import App_Spot
+from threading import Thread
+
 window = Tk()
 window.geometry("800x400")
 window.resizable(False, False)
@@ -5,10 +10,16 @@ window.wm_title("Discogs to Spotify Exporter")
 
 
 def get_collection():
+    list1.delete(0, END)
     output = App_Disc.import_collection()
 
     for album in output:
         list1.insert(END, album)
+
+
+def create_playlist():
+    thread = Thread(target=App_Spot.create_playlist, args=(label_loading, window))
+    thread.start()
 
 
 def view_collection():
@@ -17,10 +28,6 @@ def view_collection():
 
 def see_report():
     App_Spot.see_report()
-
-
-def create_playlist():
-    App_Spot.create_playlist()
 
 
 # Create labels
@@ -65,6 +72,10 @@ b3.grid(row=4, column=1, padx=10, pady=10)
 
 b4 = Button(button_frame, text="Close", width=15, command=window.destroy)
 b4.grid(row=5, column=1, padx=10, pady=10)
+
+# label to show the loading progress
+label_loading = Label(window, text="", padx=10, pady=10)
+label_loading.grid(row=6, column=0, padx=10, pady=10)
 
 # add some style
 window.configure(bg="#282828")
