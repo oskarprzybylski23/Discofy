@@ -7,4 +7,5 @@ virtual
 !requirements.txt
 *.env
 *.csv
+*.json
 __pycache__
