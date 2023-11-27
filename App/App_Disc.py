@@ -12,20 +12,18 @@ consumer_key=os.getenv('discogs_consumer_key')
 consumer_secret=os.getenv('discogs_consumer_secret')
 
 print ("Discogs key:" + consumer_key)
+
 def import_collection():
     # supply details to the Client class
     d = discogs_client.Client(
         'my_user_agent/1.0',
         consumer_key=consumer_key,
         consumer_secret=consumer_secret
-
     )
+
     url = d.get_authorize_url()
 
-
-
     print(type(url[2])) #print url for user to authorize access
-
     answer = messagebox.askyesno("Discogs Authentication",
                                  f"To authorize access, please go to {url[2]}. Would you like to open the URL in your web browser?")
     if answer:
@@ -51,9 +49,7 @@ def import_collection():
 
     question_import = messagebox.askyesno("Discogs Authentication", f"Authorized {me} succesfully, you have {collection_size} records in your collection. Would you like to import them now?")
 
-    if question_import:
-        pass
-    else:
+    if not question_import:
         return
 
     # create a list of records in a collection with artist and album title information
@@ -63,44 +59,28 @@ def import_collection():
     for item in me.collection_folders[0].releases:
         release = {'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,
                    'year': item.release.fetch('year')}
-
         collection.append(release)
 
     for index, item in enumerate(collection):
         print(index, item)
 
-    #   Export collection contents to a csv file
-        #   Create first row
-    # with open('discogs_collection.csv', 'a', newline='') as f:
-    #     first_row = ["ARTIST", "TITLE", "YEAR"]
-    #     w = csv.writer(f)
-    #     w.writerow(first_row)
-    #     f.close
+    create_csv(collection)
 
-        #   Append data to csv
+    return collection
+
+def create_csv(list):
+    #   Append data to csv
     filename = "discogs_collection.csv"
     f = open(filename, 'w+')
     f.close
 
     try:
-        for index, item in enumerate(collection):
+        for index, item in enumerate(list):
             with open(filename, 'a', newline='') as f:
                 w = csv.writer(f)
-                w.writerow(collection[index].values())
+                w.writerow(list[index].values())
 
         f.close
 
-        # with open('discogs_collection.csv', 'r') as collection:
-        #     reader = csv.reader(collection)
-        #
-        #     albums = [row[1] for row in reader]
-        #     collection.seek(0)
-        #     artists = [row[0] for row in reader]
-        #     releases = list(zip(artists, albums))
-
-
-
     except:
         pass
-
-    return collection
