@@ -1,10 +1,8 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from spotipy.oauth2 import SpotifyClientCredentials
 import csv
 import json
 from dotenv import load_dotenv
-from tkinter import simpledialog
 from tkinter import messagebox
 import webbrowser
 import os
