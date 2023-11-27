@@ -19,13 +19,7 @@ for key, value in os.environ.items():
     print(f"{key}: {value}")
 
 
-def read_playlist_data(file_path):
-    with open(file_path, 'r') as json_file:
-        playlist_data = json.load(json_file)
-    return playlist_data
-
-
-def create_playlist():
+def authenticate_spotify():
     # Create the authorization object
     oauth_object = SpotifyOAuth(
         client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope,
@@ -60,12 +54,25 @@ def create_playlist():
     )
 
     if question_create:
-        pass
+        return spotify
     else:
         return
 
+
+def read_playlist_data(file_path):
+    with open(file_path, 'r') as json_file:
+        playlist_data = json.load(json_file)
+    return playlist_data
+
+
+def create_playlist():
+    spotify = authenticate_spotify()
+
+    if not spotify:
+        print("User authentication failed!")
+        return
     # Create a list of releases
-    playlist_data = read_playlist_data("App/collection_export.json")
+    playlist_data = read_playlist_data("collection_export.json")
 
     # Create a new playlist
     playlist_name = "Discogs Record Collection"
@@ -98,6 +105,7 @@ def create_playlist():
             tracks_number = tracks_number + len(track_uris)
 
         else:
+            print("Failed to add: " + artist + " - " + title)
             failed_export.append([artist, title])
 
     #   Print some info
