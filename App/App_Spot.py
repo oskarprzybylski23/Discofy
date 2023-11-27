@@ -45,7 +45,6 @@ def authenticate_spotify():
         spotify = spotipy.Spotify(auth=token)
         return spotify
     else:
-        print("Authentication failed!")
         return
 
 
