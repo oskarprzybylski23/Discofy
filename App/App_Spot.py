@@ -1,11 +1,12 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-import csv
 import json
 from dotenv import load_dotenv
 from tkinter import messagebox
 import webbrowser
 import os
+import subprocess
+import platform
 from pathlib import Path
 
 load_dotenv()
@@ -117,13 +118,17 @@ def create_playlist():
     print("\n" + f"{len(failed_export)} albums failed to load")
 
     # create a report txt file
+    create_report(failed_export, tracks_number, albums_total, playlist_name)
+
+
+def create_report(failed_items, number_of_tracks, number_of_albums, name_of_playlist):
     with open('export_report.txt', 'w') as f:
         f.write(
-            "\n" + f" {tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'." + "\n" + "\n" + "Following albums failed to export or could not be found:" + "\n"
+            "\n" + f" {number_of_tracks} tracks from {len(number_of_albums)} albums added to playlist '{name_of_playlist}'." + "\n" + "\n" + "Following albums failed to export or could not be found:" + "\n"
         )
-        for item in failed_export:
+        for item in failed_items:
             f.write("\n" + item[0] + "- " + item[1])
-        f.write("\n" + "\n" + f"{len(failed_export)} albums failed to load")
+        f.write("\n" + "\n" + f"{len(failed_items)} albums failed to load")
         f.write(
             "\n" + "Album load may have failed due to incorrect album/artist name. In that case you can try manually changing names of the albums/artists in discogs_collection.csv file and trying again."
         )
@@ -140,10 +145,14 @@ def create_playlist():
 
 
 def see_report():
-    file = Path("export_report.txt")
-    if file.exists():
-        print("True")
-        os.system("notepad.exe export_report.txt")  # opens report in notepad (!works on windows only)
+    file_path = "export_report.txt"
+    if Path(file_path).exists():
+        if platform.system() == "Windows":
+            subprocess.run(["notepad.exe", file_path])
+        elif platform.system() == "Linux":
+            subprocess.run(["xdg-open", file_path])
+        elif platform.system() == "Darwin":  # macOS
+            subprocess.run(["open", file_path])
     else:
         messagebox.showwarning(
             title="Report not found",
