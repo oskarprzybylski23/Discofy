@@ -1,3 +1,7 @@
+from tkinter import *
+import App_Disc
+import App_Spot
+
 window = Tk()
 window.geometry("800x400")
 window.resizable(False, False)
