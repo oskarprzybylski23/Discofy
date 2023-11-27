@@ -18,19 +18,26 @@ redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
 for key, value in os.environ.items():
     print(f"{key}: {value}")
 
+
 def read_playlist_data(file_path):
     with open(file_path, 'r') as json_file:
         playlist_data = json.load(json_file)
     return playlist_data
 
+
 def create_playlist():
     # Create the authorization object
-    oauth_object = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope, cache_path=".token_cache")
+    oauth_object = SpotifyOAuth(
+        client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope,
+        cache_path=".token_cache"
+    )
     # Get the authorization URL
     auth_url = oauth_object.get_authorize_url()
     # Prompt the user to go to the authorization URL and authorize the app
-    answer = messagebox.askyesno("Spotify Authentication",
-                                 f"To authorize Spotify access, please go to {auth_url}. Would you like to open the URL in your web browser?")
+    answer = messagebox.askyesno(
+        "Spotify Authentication",
+        f"To authorize Spotify access, please go to {auth_url}. Would you like to open the URL in your web browser?"
+    )
     if answer:
         webbrowser.open(auth_url)
     else:
@@ -45,11 +52,12 @@ def create_playlist():
     else:
         print("Authentication failed.")
 
-        # auth_manager = SpotifyClientCredentials()
-        # spotify = spotipy.Spotify(auth_manager=auth_manager)
+        # auth_manager = SpotifyClientCredentials()  # spotify = spotipy.Spotify(auth_manager=auth_manager)
 
-    question_create = messagebox.askyesno("Spotify Authentication",
-                                              f"Authorized your Spoitfy account succesfully! Would you like to create a playlist now?")
+    question_create = messagebox.askyesno(
+        "Spotify Authentication",
+        f"Authorized your Spoitfy account succesfully! Would you like to create a playlist now?"
+    )
 
     if question_create:
         pass
@@ -62,8 +70,9 @@ def create_playlist():
     # Create a new playlist
     playlist_name = "Discogs Record Collection"
     playlist_description = "This is a playlist created from Discogs collection."
-    playlist = spotify.user_playlist_create(spotify.current_user()["id"], name=playlist_name, public=True,
-                                            description=playlist_description)
+    playlist = spotify.user_playlist_create(
+        spotify.current_user()["id"], name=playlist_name, public=True, description=playlist_description
+    )
 
     # Create placeholders for statistics
     albums_total = []
@@ -93,7 +102,8 @@ def create_playlist():
 
     #   Print some info
     print(
-        "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'.")  # currently showing number of albums as number of tracks, fix!
+        "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
+    )  # currently showing number of albums as number of tracks, fix!
 
     print("\n" + "Following albums failed to export or could not be found:")
     for item in failed_export:
@@ -103,23 +113,33 @@ def create_playlist():
     # create a report txt file
     with open('export_report.txt', 'w') as f:
         f.write(
-            "\n" + f" {tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'." + "\n" + "\n" + "Following albums failed to export or could not be found:" + "\n")
+            "\n" + f" {tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'." + "\n" + "\n" + "Following albums failed to export or could not be found:" + "\n"
+        )
         for item in failed_export:
             f.write("\n" + item[0] + "- " + item[1])
         f.write("\n" + "\n" + f"{len(failed_export)} albums failed to load")
-        f.write("\n" + "Album load may have failed due to incorrect album/artist name. In that case you can try manually changing names of the albums/artists in discogs_collection.csv file and trying again.")
+        f.write(
+            "\n" + "Album load may have failed due to incorrect album/artist name. In that case you can try manually changing names of the albums/artists in discogs_collection.csv file and trying again."
+        )
 
     # show summary pop up message
-    report_answer = messagebox.askyesno(title="Spotify Export", message="Playlist has been successfuly created. Not all of your records were succesfuly exported. They are either missing from Spotify or have not been found correctly. See report file for more info. Would you like to open it now?")
+    report_answer = messagebox.askyesno(
+        title="Spotify Export",
+        message="Playlist has been successfuly created. Not all of your records were succesfuly exported. They are either missing from Spotify or have not been found correctly. See report file for more info. Would you like to open it now?"
+    )
     if report_answer:
         os.system("notepad.exe export_report.txt")
     else:
         pass
 
+
 def see_report():
     file = Path("export_report.txt")
     if file.exists():
-        print ("True")
-        os.system("notepad.exe export_report.txt") # opens report in notepad (!works on windows only)
+        print("True")
+        os.system("notepad.exe export_report.txt")  # opens report in notepad (!works on windows only)
     else:
-        messagebox.showwarning(title="Report not found", message="The report has not been created yet. You need to create a playlists first.")
+        messagebox.showwarning(
+            title="Report not found",
+            message="The report has not been created yet. You need to create a playlists first."
+        )
