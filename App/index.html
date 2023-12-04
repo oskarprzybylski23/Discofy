@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Discogs to Spotify Exporter</title>
+    <!-- Add your stylesheets and scripts here -->
+  </head>
+  <body>
+    <h1>Discofy - Discogs to Spotify Collection Exporter</h1>
+
+    <div id="list-section">
+      <h2>Albums in Collection</h2>
+      <ul id="album-list"></ul>
+    </div>
+
+    <div id="button-section">
+      <button onclick="getCollection()">Import Collection</button>
+      <button onclick="createPlaylist()">Create Playlist</button>
+      <button onclick="seeReport()">See Report</button>
+      <button onclick="closeApp()">Close</button>
+    </div>
+    <p id="loading-label"></p>
+    <script src="Script.js"></script>
+  </body>
+</html>
