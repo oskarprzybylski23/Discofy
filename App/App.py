@@ -102,8 +102,19 @@ def check_authorization():
 
 @app.route('/authorized_success')
 def authorized_success():
-    # Render a simple page or return a success message
-    return 'Authorization successful. You can close this tab/window.'
+    # Render a simple page that includes JavaScript for communication
+    return '''
+    <html>
+        <head><title>Authorization Successful</title></head>
+        <body>
+            <script>
+                window.opener.postMessage('authorizationComplete', '*');
+                window.close(); // Close the current window
+            </script>
+            Authorization successful! You can now close this window if it doesn't close automatically.
+        </body>
+    </html>
+    '''
 
 @app.route('/logout')
 def logout():

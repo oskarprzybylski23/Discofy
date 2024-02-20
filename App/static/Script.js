@@ -54,7 +54,15 @@ async function openAuthorizationUrl() {
   const response = await fetch('/authorize_discogs', { method: 'POST' });
   const data = await response.json();
 
-  window.open(data.authorize_url, '_blank'); // Open the URL in a new tab or window
+  // Specify dimensions and features for the modal window
+  const width = 500; // Width of the window
+  const height = 600; // Height of the window
+  const left = (window.innerWidth - width) / 2; // Center the window horizontally
+  const top = (window.innerHeight - height) / 2; // Center the window vertically
+
+  const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
+
+  window.open(data.authorize_url, 'authWindow', features); // Open the URL in a new tab or window
 }
 
 // Clear user tokens
@@ -67,3 +75,17 @@ function logoutUser() {
     })
     .catch((error) => console.error('Error logging out:', error));
 }
+
+window.addEventListener(
+  'message',
+  (event) => {
+    if (event.data === 'authorizationComplete') {
+      console.log(
+        'Discogs authorization completed. Proceeding with next steps.'
+      );
+      // Close modal if you have one open
+      // Refresh data or UI as necessary
+    }
+  },
+  false
+);
