@@ -1,6 +1,4 @@
-import json
 import discogs_client
-import csv
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template
 import App_Disc
 import App_Spot

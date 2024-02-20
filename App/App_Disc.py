@@ -1,9 +1,6 @@
 import json
 import discogs_client
 import csv
-# from tkinter import simpledialog
-# from tkinter import messagebox
-import webbrowser
 from dotenv import load_dotenv
 import os
 from flask import session
