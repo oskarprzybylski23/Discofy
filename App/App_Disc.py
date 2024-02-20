@@ -73,13 +73,10 @@ def import_collection():
     # create a list of records in a collection with artist and album title information
     collection = []
 
-    for item in me.collection_folders[0].releases:
-        release = {'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,
-                   'year': item.release.fetch('year')}
+    for index, item in enumerate(me.collection_folders[0].releases, start=1):
+        release = {'index': index, 'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,
+                   'year': item.release.fetch('year'), 'discogs_id': item.release.fetch('id')}
         collection.append(release)
-
-    for index, item in enumerate(collection):
-        print(index, item)
 
     export_to_json(collection)
     export_to_csv(collection)
@@ -97,6 +94,7 @@ def export_to_json(collection, filename="collection_export.json"):
 
 def export_to_csv(list, filename="discogs_collection.csv"):
     #   Append data to csv
+    print("creating csv")
     filename = filename
     f = open(filename, 'w+')
     f.close

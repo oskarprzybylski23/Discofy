@@ -9,7 +9,7 @@ function displayCollection(data) {
 
   data.forEach((album) => {
     const listItem = document.createElement('li');
-    listItem.textContent = `${album.artist} - ${album.title}`;
+    listItem.textContent = `${album.index}. ${album.artist} - ${album.title}`;
     albumList.appendChild(listItem);
   });
 }

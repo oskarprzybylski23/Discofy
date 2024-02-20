@@ -7,8 +7,13 @@ body {
 }
 
 #album-list {
+    text-align: left;
     max-height: 400px;
     overflow-y: scroll;
     border: 1px solid black;
+}
+
+#album-list li {
+ list-style: none;
 }
 
