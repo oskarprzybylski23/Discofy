@@ -167,30 +167,3 @@ def create_report(failed_items, number_of_tracks, number_of_albums, name_of_play
                 "\n" + "Album load may have failed due to incorrect album/artist name. In that case, you can try "
                        "manually changing names of the albums/artists in discogs_collection.csv file and trying again."
             )
-
-    # show summary pop up message
-    report_answer = messagebox.askyesno(
-        title="Playlist Created!",
-        message="Playlist has been successfully created. See report file for more info and to see any albums that could not be found in Spotify. Would "
-                "you like to open it now?"
-    )
-    if report_answer:
-        see_report()
-    else:
-        pass
-
-
-def see_report():
-    file_path = "export_report.txt"
-    if Path(file_path).exists():
-        if platform.system() == "Windows":
-            subprocess.run(["notepad.exe", file_path])
-        elif platform.system() == "Linux":
-            subprocess.run(["xdg-open", file_path])
-        elif platform.system() == "Darwin":  # macOS
-            subprocess.run(["open", file_path])
-    else:
-        messagebox.showwarning(
-            title="Report not found",
-            message="The report file has not been found. It is possible that playlist has not been created yet."
-        )

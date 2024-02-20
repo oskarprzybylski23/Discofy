@@ -1,10 +1,11 @@
 import discogs_client
-from flask import Flask, jsonify, request, session, redirect, url_for, render_template
+from flask import Flask, jsonify, request, session, redirect, url_for, render_template, send_file, current_app
 import App_Disc
 import App_Spot
 from dotenv import load_dotenv
 import os
 from flask import session
+from pathlib import Path
 
 app = Flask(__name__)
 
@@ -34,10 +35,18 @@ def create_playlist():
     thread.start()
     return jsonify({"status": "success"})
 
-@app.route('/see_report', methods=['GET'])
+@app.route('/see_report')
 def see_report():
-    App_Spot.see_report()
-    return jsonify({"status": "success"})
+    # Assuming your Flask app is located in the App directory
+    # and the export_report.txt is in the parent directory
+    file_path = os.path.join(current_app.root_path, '..', 'export_report.txt')
+    absolute_file_path = os.path.abspath(file_path)
+    print(f"Attempting to access file at: {absolute_file_path}")
+    
+    try:
+        return send_file(absolute_file_path, as_attachment=True, download_name='export_report.txt')
+    except FileNotFoundError:
+        return "File not found.", 404
 
 @app.route('/authorize_discogs', methods=['POST'])
 def authorize_discogs():

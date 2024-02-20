@@ -104,3 +104,41 @@ window.addEventListener(
 // ---- SPOTIFY ----
 
 function createPlaylist() {}
+
+// ---- OTHER ----
+
+function seeReport() {
+  fetch('/see_report')
+    .then((response) => {
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Handle file not found specifically
+          alert("The report file has not been found. It is possible that the playlist has not been created yet.");
+        } else {
+          // Handle other types of errors
+          throw new Error('Network response was not ok.');
+        }
+        return; // Stop processing further since there was an error
+      }
+      // Assume the response is a blob
+      return response.blob();
+    })
+    .then((blob) => {
+      // Create a new object URL for the blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a temporary anchor (link) element
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      // Provide a default name for the file to be downloaded
+      a.download = 'export_report.txt';
+
+      // Append the anchor to the body, click it, and then remove it
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    })
+    .catch((error) => console.error('Error downloading report:', error));
+}
