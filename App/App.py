@@ -26,7 +26,6 @@ def index():
 @app.route('/get_collection', methods=['GET'])
 def get_collection():
     try:
-        auth_code = request.args.get('auth_code')
         output = App_Disc.import_collection()
         return jsonify(output)
     except Exception as e:
@@ -83,11 +82,15 @@ def oauth_callback():
 
     try:
         access_token, access_token_secret = d.get_access_token(oauth_verifier)
+        
         # Here, save the access token and secret securely for future use
-        # For example: save_access_token_for_user(session['user_id'], access_token, access_token_secret)
+        session['access_token'] = access_token
+        session['access_token_secret'] = access_token_secret
+
         # Clear the request token and secret from the session
         session.pop('request_token', None)
         session.pop('request_token_secret', None)
+        
         return 'Authorization successful. You can close this window.'
     except Exception as e:
         return f'Error during authorization: {e}'

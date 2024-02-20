@@ -38,6 +38,8 @@ def authorize_discogs(authCode):
 
 
 def import_collection():
+
+    print("importing collection")
     
     # Retrieve the stored access token and secret
     access_token = session.get('access_token')
