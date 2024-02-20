@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 from flask import session
 from pathlib import Path
+from threading import Thread
 
 app = Flask(__name__)
 
@@ -30,10 +31,12 @@ def get_collection():
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 @app.route('/create_playlist', methods=['POST'])
-def create_playlist():
-    thread = Thread(target=App_Spot.create_playlist)
-    thread.start()
-    return jsonify({"status": "success"})
+def handle_create_playlist():
+    success = App_Spot.create_playlist()  # Consider running this in a background thread if it's long-running
+    if success:
+        return jsonify({"status": "success", "message": "Playlist created successfully."})
+    else:
+        return jsonify({"status": "error", "message": "Failed to create playlist."}), 500
 
 @app.route('/see_report')
 def see_report():

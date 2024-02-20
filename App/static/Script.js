@@ -103,7 +103,33 @@ window.addEventListener(
 
 // ---- SPOTIFY ----
 
-function createPlaylist() {}
+function createPlaylist() {
+  fetch('/create_playlist', {
+    method: 'POST', // Specify the method
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    // If you need to send data in the request body, uncomment and modify below
+    // body: JSON.stringify({
+    //     key: 'value'
+    // })
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === 'success') {
+        console.log(data.message);
+        // Update the UI to show success
+      } else {
+        console.error(data.message);
+        // Update the UI to show error
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      // Update the UI to show error
+    });
+}
+
 
 // ---- OTHER ----
 

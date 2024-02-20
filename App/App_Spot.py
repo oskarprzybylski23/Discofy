@@ -56,32 +56,19 @@ def read_playlist_data(file_path):
     return playlist_data
 
 
-def create_playlist(label_loading, window):
+def create_playlist():
     spotify = authenticate_spotify()
 
     if not spotify:
         print("User authentication failed!")
-        return
+        return False
 
-    question_create = messagebox.askyesno(
-        "Spotify Authentication",
-        f"Authorized your Spotify account successfully! Would you like to create a playlist now?"
-    )
-
-    if not question_create:
-        return
-
-    # Create a list of releases
+    # Playlist info
     playlist_data = read_playlist_data("collection_export.json")
+    playlist_name = "Discogs Collection"  # Change this to dynamically set based on user input from the web
+    playlist_description = "This is a playlist created from Discogs collection."
 
-    # Create a new playlist
-    try:
-        # Prompt user for playlist name
-        playlist_name = simpledialog.askstring("Input", "Enter playlist name:")
-        if not playlist_name:
-            messagebox.showwarning("Error", "Playlist name cannot be empty.")
-            return
-        playlist_description = "This is a playlist created from Discogs collection."
+    try:    
         playlist = spotify.user_playlist_create(
             spotify.current_user()["id"], name=playlist_name, public=True, description=playlist_description
         )
@@ -108,24 +95,14 @@ def create_playlist(label_loading, window):
                 track_uris_total.append(track_uris)
                 tracks_number = tracks_number + len(track_uris)
                 print("Added: " + artist + " - " + title + ", id: " + album_id)
-                message = f"Added: {artist} - {title}, id: {album_id}"
-                label_loading.config(text=message)
-                window.update_idletasks()  # Update the GUI
 
             else:
                 failed_export.append([artist, title])
                 print("Failed to add: " + artist + " - " + title)
-                message = f"Failed to add: {artist} - {title}"
-                label_loading.config(text=message)
-                window.update_idletasks()  # Update the GUI
 
         print(
             "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
         )
-
-        summary_message = "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
-        label_loading.config(text=summary_message)
-        window.update_idletasks()
 
         # summary message if any albums failed to load
         if len(failed_export) > 0:
@@ -136,19 +113,19 @@ def create_playlist(label_loading, window):
             summary_message = (
                 f"\n{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'\n"
                 f"{len(failed_export)} albums failed to load")
-            label_loading.config(text=summary_message)
-            window.update_idletasks()
+            
         else:
             summary_message = (
                     "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'.")
-            label_loading.config(text=summary_message)
-            window.update_idletasks()
-
+            
         # create a report txt file
         create_report(failed_export, tracks_number, albums_total, playlist_name)
 
-    except _tkinter.TclError:
-        print("Playlist creation canceled.")
+        return True
+    
+    except Exception as e:
+        print(f"Error creating playlist: {e}")
+        return False
 
 
 def create_report(failed_items, number_of_tracks, number_of_albums, name_of_playlist):
