@@ -4,10 +4,13 @@ body {
 
 #list-section {
     margin-top: 20px;
+    width: 400px;
+    height: fit-content;
 }
 
 #collection-list {
     text-align: left;
+    height: 400px;
     max-height: 400px;
     overflow-y: scroll;
     border: 1px solid black;
