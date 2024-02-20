@@ -67,19 +67,10 @@ def import_collection():
     print('user authorized:')
     print(me)
 
-    # collection_size = me.collection_folders[0].count
-    # print("records in collection: " + str(collection_size))
-
-    # question_import = messagebox.askyesno(
-    #     "Discogs Authentication",
-    #     f"Authorized {me} succesfully, you have {collection_size} records in your collection. Would you like to import them now?"
-    # )
-
-    # if not question_import:
-    #     return
+    collection_size = me.collection_folders[0].count
+    print("records in collection: " + str(collection_size))
 
     # create a list of records in a collection with artist and album title information
-
     collection = []
 
     for item in me.collection_folders[0].releases:

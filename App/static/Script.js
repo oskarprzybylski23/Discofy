@@ -1,3 +1,23 @@
+async function startImportProcess() {
+  await openAuthorizationUrl();
+  checkAuthorizationStatus();
+}
+
+function checkAuthorizationStatus() {
+  // Polling every 5 seconds to check if authorization is complete
+  const interval = setInterval(async () => {
+    const response = await fetch('/check_authorization');
+    const { authorized } = await response.json();
+
+    console.log(`check authorization status: ${authorized}`);
+
+    if (authorized) {
+      clearInterval(interval);
+      getCollection(); // Fetch and display the collection
+    }
+  }, 5000);
+}
+
 function getCollection() {
   console.log(`Fetching collection`);
 
@@ -34,11 +54,21 @@ async function openAuthorizationUrl() {
   console.log(data);
   console.log(data.authorize_url);
   // Update the UI with the authorization URL
-  const authorizeUrlElement = document.getElementById('authorize-url');
-  authorizeUrlElement.textContent = data.authorize_url;
 
   // Open the URL in a new tab or window
   window.open(data.authorize_url, '_blank');
 
   console.log('open auth URL');
+}
+
+function logoutUser() {
+  fetch('/logout')
+    .then((response) => {
+      if (response.ok) {
+        console.log('User logged out');
+        // Optionally, refresh the page or redirect the user to the home page
+        window.location.href = '/';
+      }
+    })
+    .catch((error) => console.error('Error logging out:', error));
 }

@@ -1,7 +1,7 @@
 import json
 import discogs_client
 import csv
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request, session, redirect, url_for, render_template
 import App_Disc
 import App_Spot
 from dotenv import load_dotenv
@@ -91,9 +91,30 @@ def oauth_callback():
         session.pop('request_token', None)
         session.pop('request_token_secret', None)
         
-        return 'Authorization successful. You can close this window.'
+        session['authorized'] = True  # Indicate authorization success
+
+        return redirect(url_for('authorized_success'))
     except Exception as e:
         return f'Error during authorization: {e}'
+
+@app.route('/check_authorization', methods=['GET'])
+def check_authorization():
+    authorized = session.get('authorized', False)
+    return jsonify({'authorized': authorized})
+
+@app.route('/authorized_success')
+def authorized_success():
+    # Render a simple page or return a success message
+    return 'Authorization successful. You can close this tab/window.'
+
+@app.route('/logout')
+def logout():
+    # Clear the stored access token and secret from the session
+    session.pop('access_token', None)
+    session.pop('access_token_secret', None)
+    session.pop('authorized', None)
+    # Redirect to home page or a logout confirmation page
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
