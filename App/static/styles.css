@@ -1,0 +1,14 @@
+body {
+    text-align: center;
+}
+
+#list-section {
+    margin-top: 20px;
+}
+
+#album-list {
+    max-height: 400px;
+    overflow-y: scroll;
+    border: 1px solid black;
+}
+

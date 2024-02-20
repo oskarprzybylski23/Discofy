@@ -3,6 +3,17 @@ async function startImportProcess() {
   checkAuthorizationStatus();
 }
 
+function displayCollection(data) {
+  const albumList = document.getElementById('album-list');
+  albumList.innerHTML = ''; // Clear previous data
+
+  data.forEach((album) => {
+    const listItem = document.createElement('li');
+    listItem.textContent = `${album.artist} - ${album.title}`;
+    albumList.appendChild(listItem);
+  });
+}
+
 function checkAuthorizationStatus() {
   // Polling every 5 seconds to check if authorization is complete
   const interval = setInterval(async () => {
@@ -22,7 +33,6 @@ function getCollection() {
   console.log(`Fetching collection`);
 
   fetch(`http://127.0.0.1:5000/get_collection`)
-    .then((response) => response.json())
     .then((response) => {
       if (!response.ok) {
         // If server response is not ok, throw an error with the status
@@ -32,18 +42,9 @@ function getCollection() {
     })
     .then((data) => {
       // Update the UI with the data
-      const albumList = document.getElementById('album-list');
-      albumList.innerHTML = ''; // Clear previous data
-
-      data
-        .forEach((album) => {
-          const listItem = document.createElement('li');
-          listItem.textContent = `${album.artist} - ${album.title}`;
-          albumList.appendChild(listItem);
-        })
-        .catch((error) => {
-          console.error('Fetch error:', error.message);
-        });
+      displayCollection(data).catch((error) => {
+        console.error('Fetch error:', error.message);
+      });
     });
 }
 

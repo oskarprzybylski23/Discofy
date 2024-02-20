@@ -3,22 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Discogs to Spotify Exporter</title>
-    <!-- Add your stylesheets and scripts here -->
+    <meta name="description" content="Discofy - Export Discogs Collection as a Spotify Playlist">
+    <meta name="keywords" content="Discogs, Spotify, Records, Collection, Playlist, Export, Vinyl">
+    <title>Discofy</title>
+    <link rel="stylesheet" href="./static/styles.css">
+    <link rel="icon" type="image/x-icon" href="./static/favicon.ico">
   </head>
   <body>
-    <h1>Discofy - Discogs to Spotify Collection Exporter</h1>
-
-    <div id="list-section">
-      <h2>Albums in Collection</h2>
-      <ul id="album-list"></ul>
-    </div>
-
+    <h1>Discofy - Export Discogs Collection to Spotify</h1>
     <div id="button-section">
       <button onclick="startImportProcess()">Import Collection</button>
       <button onclick="createPlaylist()">Create Playlist</button>
       <button onclick="seeReport()">See Report</button>
       <button onclick="logoutUser()">Logout</button>
+    </div>
+    <div id="list-section">
+      <h2>Albums in Collection</h2>
+      <ul id="album-list"></ul>
     </div>
     <!-- <div>
       <h1>Discog  s Authentication</h1>
