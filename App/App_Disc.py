@@ -36,7 +36,7 @@ def import_collection():
         print("Failed to authenticate with the provided access token.")
         return
 
-    print('user authorized:' + me)
+    print('user authorized:' + str(me))
 
     # Create a list of records in the collection with position information
     collection = []
