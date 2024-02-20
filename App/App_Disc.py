@@ -1,11 +1,12 @@
 import json
 import discogs_client
 import csv
-from tkinter import simpledialog
-from tkinter import messagebox
+# from tkinter import simpledialog
+# from tkinter import messagebox
 import webbrowser
 from dotenv import load_dotenv
 import os
+from flask import session
 
 load_dotenv()
 
@@ -15,37 +16,20 @@ consumer_secret = os.getenv('discogs_consumer_secret')
 print("Discogs key:" + consumer_key)
 
 
-def authorize_discogs():
+def authorize_discogs(authCode):
     # supply details to the Client class
     d = discogs_client.Client(
         'my_user_agent/1.0', consumer_key=consumer_key, consumer_secret=consumer_secret
     )
 
-    url = d.get_authorize_url()
+    d.get_access_token(authCode)  # pass code for authorization
 
-    print(type(url[2]))  # print url for user to authorize access
-    answer = messagebox.askyesno(
-        "Discogs Authentication",
-        f"To authorize access, please go to {url[2]}. Would you like to open the URL in your web browser?"
-    )
-    if answer:
-        webbrowser.open(url[2])  # Here you can wait for the user to input the code and return it
-    else:
-        return
-
-    auth_code = simpledialog.askstring(
-        "Dicogs Authentication", f"Please click 'Authorize' in the browser and enter the authorization code below. "
-    )
-    # auth_code = input(code) #prompt user to input the code from url
-
-    d.get_access_token(auth_code)  # pass code for authorization
-
-    print('authorization code "' + auth_code + '" correct!')
+    print('authorization code "' + authCode + '" correct!')
 
     me = d.identity()  # authorized username
 
     if not me:
-        return
+        return None
 
     print('user authorized:')
     print(me)
@@ -54,21 +38,43 @@ def authorize_discogs():
 
 
 def import_collection():
-    me = authorize_discogs()
+    
+    # Retrieve the stored access token and secret
+    access_token = session.get('access_token')
+    access_token_secret = session.get('access_token_secret')
 
-    if not me:
-        return
+    if not access_token or not access_token_secret:
+        print("Access token or secret is missing.")
+        return None
 
-    collection_size = me.collection_folders[0].count
-    print("records in collection: " + str(collection_size))
-
-    question_import = messagebox.askyesno(
-        "Discogs Authentication",
-        f"Authorized {me} succesfully, you have {collection_size} records in your collection. Would you like to import them now?"
+    # Initialize the Discogs client with the access token
+    d = discogs_client.Client(
+        'my_user_agent/1.0',
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret,
+        token=access_token,
+        secret=access_token_secret,
     )
 
-    if not question_import:
+    me = d.identity()
+
+    if not me:
+        print("Failed to authenticate with the provided access token.")
         return
+    
+    print('user authorized:')
+    print(me)
+
+    # collection_size = me.collection_folders[0].count
+    # print("records in collection: " + str(collection_size))
+
+    # question_import = messagebox.askyesno(
+    #     "Discogs Authentication",
+    #     f"Authorized {me} succesfully, you have {collection_size} records in your collection. Would you like to import them now?"
+    # )
+
+    # if not question_import:
+    #     return
 
     # create a list of records in a collection with artist and album title information
 
