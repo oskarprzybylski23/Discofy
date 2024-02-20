@@ -4,12 +4,14 @@ async function startImportProcess() {
 }
 
 function displayCollection(data) {
-  const albumList = document.getElementById('album-list');
+  const albumList = document.getElementById('collection-list');
   albumList.innerHTML = ''; // Clear previous data
 
   data.forEach((album) => {
     const listItem = document.createElement('li');
     listItem.textContent = `${album.index}. ${album.artist} - ${album.title}`;
+    listItem.id = `${album.discogs_id}`;
+    listItem.className = 'collection-item';
     albumList.appendChild(listItem);
   });
 }
@@ -42,9 +44,10 @@ function getCollection() {
     })
     .then((data) => {
       // Update the UI with the data
-      displayCollection(data).catch((error) => {
-        console.error('Fetch error:', error.message);
-      });
+      displayCollection(data);
+    })
+    .catch((error) => {
+      console.error('Fetch error:', error.message);
     });
 }
 
