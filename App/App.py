@@ -15,8 +15,6 @@ load_dotenv()
 consumer_key = os.getenv('discogs_consumer_key')
 consumer_secret = os.getenv('discogs_consumer_secret')
 
-
-
 @app.route('/')
 def index():
     return render_template('index.html')

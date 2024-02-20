@@ -1,3 +1,5 @@
+// ---- DISCOGS ----
+
 async function startImportProcess() {
   const response = await fetch('/check_authorization');
   const { authorized } = await response.json();
@@ -98,3 +100,7 @@ window.addEventListener(
   },
   false
 );
+
+// ---- SPOTIFY ----
+
+function createPlaylist() {}
