@@ -26,7 +26,7 @@ function checkAuthorizationStatus() {
 
     if (authorized) {
       clearInterval(interval);
-      getCollection(); // Fetch and display the collection
+      getCollection(); // Fetch the collection
     }
   }, 5000);
 }
@@ -43,8 +43,7 @@ function getCollection() {
       return response.json();
     })
     .then((data) => {
-      // Update the UI with the data
-      displayCollection(data);
+      displayCollection(data); // Update the UI with the data
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
@@ -55,23 +54,15 @@ async function openAuthorizationUrl() {
   const response = await fetch('/authorize_discogs', { method: 'POST' });
   const data = await response.json();
 
-  console.log(data);
-  console.log(data.authorize_url);
-  // Update the UI with the authorization URL
-
-  // Open the URL in a new tab or window
-  window.open(data.authorize_url, '_blank');
-
-  console.log('open auth URL');
+  window.open(data.authorize_url, '_blank'); // Open the URL in a new tab or window
 }
 
+// Clear user tokens
 function logoutUser() {
   fetch('/logout')
     .then((response) => {
       if (response.ok) {
         console.log('User logged out');
-        // Optionally, refresh the page or redirect the user to the home page
-        window.location.href = '/';
       }
     })
     .catch((error) => console.error('Error logging out:', error));

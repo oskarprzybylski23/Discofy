@@ -10,34 +10,9 @@ load_dotenv()
 consumer_key = os.getenv('discogs_consumer_key')
 consumer_secret = os.getenv('discogs_consumer_secret')
 
-print("Discogs key:" + consumer_key)
-
-
-def authorize_discogs(authCode):
-    # supply details to the Client class
-    d = discogs_client.Client(
-        'my_user_agent/1.0', consumer_key=consumer_key, consumer_secret=consumer_secret
-    )
-
-    d.get_access_token(authCode)  # pass code for authorization
-
-    print('authorization code "' + authCode + '" correct!')
-
-    me = d.identity()  # authorized username
-
-    if not me:
-        return None
-
-    print('user authorized:')
-    print(me)
-
-    return me
-
-
 def import_collection():
 
-    print("importing collection")
-    
+    print("importing collection") 
     # Retrieve the stored access token and secret
     access_token = session.get('access_token')
     access_token_secret = session.get('access_token_secret')
@@ -60,14 +35,10 @@ def import_collection():
     if not me:
         print("Failed to authenticate with the provided access token.")
         return
-    
-    print('user authorized:')
-    print(me)
 
-    collection_size = me.collection_folders[0].count
-    print("records in collection: " + str(collection_size))
+    print('user authorized:' + me)
 
-    # create a list of records in a collection with artist and album title information
+    # Create a list of records in the collection with position information
     collection = []
 
     for index, item in enumerate(me.collection_folders[0].releases, start=1):
@@ -79,7 +50,6 @@ def import_collection():
     export_to_csv(collection)
 
     return collection
-
 
 def export_to_json(collection, filename="collection_export.json"):
     app_folder = os.path.dirname(os.path.abspath(__file__))

@@ -43,13 +43,13 @@ def see_report():
 
 @app.route('/authorize_discogs', methods=['POST'])
 def authorize_discogs():
+    print("authorizing user")
+
     d = discogs_client.Client(
         'my_user_agent/1.0', consumer_key=consumer_key, consumer_secret=consumer_secret
     )
 
     token, secret, url = d.get_authorize_url(callback_url='http://127.0.0.1:5000/oauth_callback')
-
-    print(url)
 
     # Save the request token and secret in the user's session or your chosen storage mechanism
     session['request_token'] = token
@@ -81,7 +81,7 @@ def oauth_callback():
     try:
         access_token, access_token_secret = d.get_access_token(oauth_verifier)
         
-        # Here, save the access token and secret securely for future use
+        # Save the access token and secret securely for future use
         session['access_token'] = access_token
         session['access_token_secret'] = access_token_secret
 
