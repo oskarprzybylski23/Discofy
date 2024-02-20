@@ -1,6 +1,15 @@
 async function startImportProcess() {
-  await openAuthorizationUrl();
-  checkAuthorizationStatus();
+  const response = await fetch('/check_authorization');
+  const { authorized } = await response.json();
+
+  if (authorized) {
+    console.log('Already authorized. Fetching collection.');
+    getCollection(); // Directly fetch and display the collection
+  } else {
+    console.log('Not authorized. Opening authorization URL.');
+    await openAuthorizationUrl();
+    checkAuthorizationStatus(); // Start polling for authorization status
+  }
 }
 
 function displayCollection(data) {
