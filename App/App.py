@@ -1,5 +1,6 @@
 import discogs_client
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, send_file, current_app
+import requests
 import App_Disc
 import App_Spot
 from dotenv import load_dotenv
@@ -7,6 +8,7 @@ import os
 from flask import session
 from pathlib import Path
 from threading import Thread
+from spotipy.oauth2 import SpotifyOAuth
 
 app = Flask(__name__)
 
@@ -14,8 +16,17 @@ app.secret_key = 'your_secret_key'  # Set this to a random secret value
 
 load_dotenv()
 
+scope = 'playlist-modify-public'
+client_id = os.getenv('SPOTIPY_CLIENT_ID')
+client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
+redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
+
 consumer_key = os.getenv('discogs_consumer_key')
 consumer_secret = os.getenv('discogs_consumer_secret')
+
+# Spotify OAuth URLs
+SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
+SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 @app.route('/')
 def index():
@@ -126,12 +137,68 @@ def authorized_success():
     </html>
     '''
 
+@app.route('/spotify_auth_url')
+def get_spotify_auth_url():
+    print("enters spotify_auth_url")
+    oauth_object = SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri=redirect_uri,
+        scope=scope,
+        cache_path=".token_cache"
+    )
+    auth_url = oauth_object.get_authorize_url()
+    print(auth_url)
+    return jsonify({'auth_url': auth_url})
+
+
+def exchange_code_for_token(auth_code):
+    oauth_object = SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri=redirect_uri,
+        scope=scope,
+        cache_path=".token_cache"
+    )
+    token_info = oauth_object.get_access_token(code=auth_code)
+    print(token_info)
+    return token_info  # This includes the access token
+
+
+@app.route('/login')
+def login():
+    auth_url = f"{SPOTIFY_AUTH_URL}?client_id={client_id}&response_type=code&redirect_uri={redirect_uri}&scope=playlist-modify-private"
+    return redirect(auth_url)
+
+@app.route('/spotify_callback')
+def spotify_callback():
+    # print(request.url)
+    code = request.args.get('code')
+    
+    if not code:
+        print("No auth code in request")
+    # Now exchange the auth code for an access token
+    token_data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': redirect_uri,
+        'client_id': client_id,
+        'client_secret': client_secret,
+    }
+
+    response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
+    token_info = response.json()
+    session['tokens'] = token_info  # Store token info in the session
+    print(session['tokens'])
+    return 'Login successful!'
+
 @app.route('/logout')
 def logout():
     # Clear the stored access token and secret from the session
     session.pop('access_token', None)
     session.pop('access_token_secret', None)
     session.pop('authorized', None)
+    session.pop('tokens', None)
     # Redirect to home page or a logout confirmation page
     return redirect(url_for('index'))
 

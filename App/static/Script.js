@@ -103,16 +103,27 @@ window.addEventListener(
 
 // ---- SPOTIFY ----
 
+function getSpotifyAuthURLAndRedirect() {
+  fetch('/spotify_auth_url')
+    .then((response) => response.json())
+    .then((data) => {
+      const authUrl = data.auth_url;
+      // Open the URL in a new window
+      window.open(authUrl, 'SpotifyLoginWindow', 'width=800,height=600');
+    })
+    .catch((error) => console.error('Error fetching Spotify auth URL:', error));
+}
+
 function createPlaylist() {
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
     headers: {
       'Content-Type': 'application/json',
     },
-    // If you need to send data in the request body, uncomment and modify below
-    // body: JSON.stringify({
-    //     key: 'value'
-    // })
+    // Optionally, include other data necessary for playlist creation in the request body
+    body: JSON.stringify({
+      // Your request body content here, if needed
+    }),
   })
     .then((response) => response.json())
     .then((data) => {

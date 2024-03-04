@@ -9,6 +9,7 @@ import subprocess
 import platform
 from pathlib import Path
 import _tkinter
+from flask import session
 
 load_dotenv()
 
@@ -16,10 +17,6 @@ scope = 'playlist-modify-public'
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
-
-for key, value in os.environ.items():
-    print(f"{key}: {value}")
-
 
 def authenticate_spotify():
     # Create the authorization object
@@ -57,7 +54,9 @@ def read_playlist_data(file_path):
 
 
 def create_playlist():
-    spotify = authenticate_spotify()
+    token = session['tokens']['access_token']
+    print("Token:" + token)
+    spotify = spotipy.Spotify(auth=token)
 
     if not spotify:
         print("User authentication failed!")
