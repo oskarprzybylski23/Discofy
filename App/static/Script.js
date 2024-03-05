@@ -18,12 +18,21 @@ function displayCollection(data) {
   const albumList = document.getElementById('list-discogs');
   albumList.innerHTML = ''; // Clear previous data
 
-  data.forEach((album) => {
-    const listItem = document.createElement('li');
-    listItem.textContent = `${album.index}. ${album.artist} - ${album.title}`;
+  const template = document.getElementById('albumTemplate');
+
+  data.forEach((album, index) => {
+    const clone = document.importNode(template.content, true);
+
+    // Now you can find and populate the specific parts of the template
+    clone.querySelector('.album-index').textContent = `${index + 1}`;
+    clone.querySelector('.album-artist').textContent = album.artist;
+    clone.querySelector('.album-title').textContent = album.title;
+
+    // Set the ID on the <li> for reference
+    const listItem = clone.querySelector('li');
     listItem.id = `${album.discogs_id}`;
-    listItem.className = 'collection-item';
-    albumList.appendChild(listItem);
+
+    albumList.appendChild(clone);
   });
 }
 
