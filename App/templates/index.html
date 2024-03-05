@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Discofy - Export Discogs Collection as a Spotify Playlist">
+    <meta name="keywords" content="Discogs, Spotify, Records, Collection, Playlist, Export, Vinyl">
+    <title>Discofy</title>
+    <link rel="stylesheet" href="./static/styles.css">
+    <link rel="icon" type="image/x-icon" href="./static/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <header>
+      <div id="logo-container"><img src="./static/favicon.ico" alt="Discofy logo" id="logo"><h1>Discofy</h1></div>
+      <h3>Export Discogs Collection to Spotify</h3>
+    </header>
+    <main>
+    <div id="button-section">
+      <button onclick="startImportProcess()">Import Collection</button>
+      <button onclick="createPlaylist()">Create Playlist</button>
+      <button onclick="getSpotifyAuthURLAndRedirect()">Connect Spotify</button>
+      <button onclick="seeReport()">See Report</button>
+      <button onclick="logoutUser()">Logout</button>
+    </div>
+    <div id="display-section">
+      <div class="list-section" id="list-container-discogs">
+        <h2>Discogs Collection</h2>
+        <ul class="collection-list" id="list-discogs"></ul>
+      </div>
+      <div class="list-section" id="list-container-spotify">
+        <h2>Spotify Playlist</h2>
+        <ul class="collection-list" id="list-spotify"></ul>
+      </div>
+    </div>
+    <script src="../static/Script.js"></script>
+  </main>
+  <template id="albumTemplate">
+    <li class="collection-item">
+      <div class="album">
+        <span class="album-index"></span>
+        <div class="album-text">
+          <span class="album-title"></span>
+          <span class="album-artist"></span>
+        </div>
+      </div>
+    </li>
+  </template>
+  </body>
+</html>

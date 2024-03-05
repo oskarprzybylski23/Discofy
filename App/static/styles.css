@@ -1,0 +1,111 @@
+/* ==BASE STYLES AND GLOBAL RULES== */
+:root {
+    /* Color palette */
+    --header: #1db954;
+    --background: #121212;
+    --mid-background: #212121;
+    --light-background: #535353;
+    --highlight: #535353;
+    --font-bright: #ffffff;
+    --font-dark: #b3b3b3;
+    /* Fonts */
+    --font-main: 'Montserrat', sans-serif;
+  }
+
+body {
+    font-family: var(--font-main);
+    text-align: center;
+    background-color: var(--background);
+    color: var(--font-bright);
+}
+
+h1 {
+    color: var(--header);
+
+}
+
+h3 {
+    color: var(--font-dark);
+    margin-top: 0;
+    margin-bottom: 50px;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+}
+
+#logo {
+    height: 2rem;
+    background-color: #1db954;
+    border-radius: 5px;
+}
+
+#logo-container {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+}
+
+#display-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.list-section {
+    margin-top: 20px;
+    width: 500px;
+    height: fit-content;
+}
+
+.collection-list {
+    text-align: left;
+    height: 400px;
+    max-height: 400px;
+    overflow-y: scroll;
+    border-radius: 5px;
+    padding: 2px;
+    background-color: var(--light-background);
+}
+
+.collection-list li {
+    list-style: none;
+}
+
+.album {
+    font-size: 1rem;
+    display: flex;
+    margin-top: 1px;
+    padding: 5px;
+    background-color: var(--mid-background);
+    border-radius: 5px;
+    color: var(--font-bright);
+}
+
+.album-index {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 10%;
+    color: var(--font-dark);
+}
+
+.album-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    width: 90%;
+}
+
+.album-title {
+    overflow-x: hidden;
+    font-weight: 600;
+}
+
+.album-artist {
+    color: var(--font-dark);
+    font-size: 0.8rem;
+}
