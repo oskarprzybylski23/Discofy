@@ -10,6 +10,30 @@ load_dotenv()
 consumer_key = os.getenv('discogs_consumer_key')
 consumer_secret = os.getenv('discogs_consumer_secret')
 
+def retrieve_tokens():
+    access_token = session.get('access_token')
+    access_token_secret = session.get('access_token_secret')
+
+    if not access_token or not access_token_secret:
+        print("Access token or secret is missing.")
+        return None
+
+    # Initialize the Discogs client with the access token
+    d = discogs_client.Client(
+        'my_user_agent/1.0',
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret,
+        token=access_token,
+        secret=access_token_secret,
+    )
+
+    me = d.identity()
+
+    return me
+
+def import_library ():
+    pass
+
 def import_collection():
 
     print("importing collection") 
@@ -30,7 +54,7 @@ def import_collection():
         secret=access_token_secret,
     )
 
-    me = d.identity()
+    me = retrieve_tokens()
 
     if not me:
         print("Failed to authenticate with the provided access token.")
@@ -40,6 +64,8 @@ def import_collection():
 
     # Create a list of records in the collection with position information
     collection = []
+
+    print(me.collection_folders)
 
     for index, item in enumerate(me.collection_folders[0].releases, start=1):
         release = {'index': index, 'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,
