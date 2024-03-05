@@ -21,13 +21,31 @@ body {
 
 h1 {
     color: var(--header);
-    margin-bottom: 0.5rem;
+
 }
 
 h3 {
     color: var(--font-dark);
     margin-top: 0;
     margin-bottom: 50px;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+}
+
+#logo {
+    height: 2rem;
+    background-color: #1db954;
+    border-radius: 5px;
+}
+
+#logo-container {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    gap: 1rem;
 }
 
 #display-section {
