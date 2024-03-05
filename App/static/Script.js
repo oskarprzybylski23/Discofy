@@ -15,7 +15,7 @@ async function startImportProcess() {
 }
 
 function displayCollection(data) {
-  const albumList = document.getElementById('collection-list');
+  const albumList = document.getElementById('list-discogs');
   albumList.innerHTML = ''; // Clear previous data
 
   data.forEach((album) => {

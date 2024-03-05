@@ -18,11 +18,16 @@
       <button onclick="seeReport()">See Report</button>
       <button onclick="logoutUser()">Logout</button>
     </div>
-    <div id="list-section">
-      <h2>Albums in Collection</h2>
-      <ul id="collection-list"></ul>
+    <div id="display-section">
+      <div class="list-section" id="list-container-discogs">
+        <h2>Albums in Collection</h2>
+        <ul class="collection-list" id="list-discogs"></ul>
+      </div>
+      <div class="list-section" id="list-container-spotify">
+        <h2>Spotify Playlist</h2>
+        <ul class="collection-list" id="list-spotify"></ul>
+      </div>
     </div>
-    <p id="loading-label"></p>
     <script src="../static/Script.js"></script>
   </body>
 </html>

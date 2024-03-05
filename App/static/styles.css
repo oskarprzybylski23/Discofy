@@ -2,13 +2,20 @@ body {
     text-align: center;
 }
 
-#list-section {
+#display-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.list-section {
     margin-top: 20px;
     width: 400px;
     height: fit-content;
 }
 
-#collection-list {
+.collection-list {
     text-align: left;
     height: 400px;
     max-height: 400px;
@@ -16,7 +23,7 @@ body {
     border: 1px solid black;
 }
 
-#collection-list li {
+.collection-list li {
  list-style: none;
 }
 
