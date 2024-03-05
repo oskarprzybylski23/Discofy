@@ -1,15 +1,31 @@
-# Discogs-Spotify-Playlist-Creator (WIP)
+<p align="center">
+  <img src="./App/static/favicon.ico" alt="Discofy Logo" width="100"/>
+</p>
 
-## Overview
-The Discogs-Spotify Playlist Creator is a Python-based application that allows users to create Spotify playlists based on their Discogs collections. This tool authenticates users with Spotify, retrieves album information from a Discogs collection, and creates a Spotify playlist containing tracks from those albums.
+<h1 align="center">Discofy (WIP)</h1>
 
-## Features
-- Authentication with Spotify using OAuth.
-- Retrieval of user's Discogs collection data.
-- Automated creation of Spotify playlists based on the Discogs collection.
-- Error handling and reporting for albums not found on Spotify.
+<p align="center">
+Discofy is an application that allows users to create Spotify playlists based on their Discogs collections. This tool retrieves album information from a Discogs collection and creates a Spotify playlist containing tracks from those albums.
+  <br>
+  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator"><strong>Explore the docs »</strong></a>
+  <br>
+  <br>
+  <a href="#">View Demo</a>
+  ·
+  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues">Report Bug</a>
+  ·
+  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues">Request Feature</a>
+</p>
 
-## Installation
+---
+
+## 🌟 Features
+- **Spotify and Discogs Authentication:** Secure OAuth authentication ensures safe access to your Spotify and Discogs data.
+- **Discogs Collection Retrieval:** Easily pull your entire Discogs collection into the app.
+- **Automated Playlist Creation:** Convert your Discogs collections into Spotify playlists with just a few clicks.
+- **Error Handling:** Intelligent error reporting for albums not found on Spotify, ensuring smooth playlist creation.
+
+## 🛠 Installation
 
 1. Clone the repository:
 
@@ -50,10 +66,11 @@ source venv/bin/activate
 python App/App.py 
 ```
 
-## Usage
+## 🚀 Usage
+After setting up, visit http://localhost:5000 in your web browser to start creating your playlists.
 
-## Contributing
-Contributions to the Discogs-Spotify Playlist Creator are welcome. To contribute:
+## 💡 Contributing
+Here's how you can contribute:
 
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature/AmazingFeature`).
@@ -61,7 +78,7 @@ Contributions to the Discogs-Spotify Playlist Creator are welcome. To contribute
 4. Push to the branch (`git push origin feature/AmazingFeature`).
 5. Open a pull request.
 
-## License
+## 📝 License
 Distributed under the MIT License. See `LICENSE` for more information.
 
-Project Link:
+Project Link: https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator
