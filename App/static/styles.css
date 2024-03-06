@@ -85,7 +85,7 @@ header {
     color: var(--font-bright);
 }
 
-.album, .collection:hover {
+.album:hover, .collection:hover {
 background-color: var(--background);
 cursor: pointer;
 }
@@ -113,4 +113,22 @@ cursor: pointer;
 .album-artist, .colection-count {
     color: var(--font-dark);
     font-size: 0.8rem;
+}
+
+.button {
+    background-color: var(--mid-background);
+    color: var(--font-bright);
+    border: none;
+    border-radius: 500px;
+    padding: 10px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.button:hover {
+    background-color: var(--light-background); 
+}
+
+.button:active {
+    background-color: var(--mid-background);
 }
