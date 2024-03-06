@@ -85,6 +85,11 @@ header {
     color: var(--font-bright);
 }
 
+.album, .collection:hover {
+background-color: var(--background);
+cursor: pointer;
+}
+
 .album-index, .collection-index {
     display: flex;
     justify-content: center;
