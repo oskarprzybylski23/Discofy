@@ -75,7 +75,7 @@ header {
     list-style: none;
 }
 
-.album {
+.album, .collection {
     font-size: 1rem;
     display: flex;
     margin-top: 1px;
@@ -85,7 +85,7 @@ header {
     color: var(--font-bright);
 }
 
-.album-index {
+.album-index, .collection-index {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -93,19 +93,19 @@ header {
     color: var(--font-dark);
 }
 
-.album-text {
+.album-text, .collection-text {
     display: flex;
     flex-direction: column;
     justify-content: left;
     width: 90%;
 }
 
-.album-title {
+.album-title, .colection-name {
     overflow-x: hidden;
     font-weight: 600;
 }
 
-.album-artist {
+.album-artist, .colection-count {
     color: var(--font-dark);
     font-size: 0.8rem;
 }

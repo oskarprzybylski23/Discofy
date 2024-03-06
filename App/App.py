@@ -32,6 +32,16 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 def index():
     return render_template('index.html')
 
+@app.route('/get_library', methods=['GET'])
+def get_library():
+    try:
+        output = App_Disc.import_library()
+        print(output)
+        return jsonify(output)
+    except Exception as e:
+        print(f"Error during collection import: {e}")
+        return jsonify({"error": "Internal server error during collection import"}), 500
+
 @app.route('/get_collection', methods=['GET'])
 def get_collection():
     try:

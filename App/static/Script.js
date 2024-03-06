@@ -6,12 +6,34 @@ async function startImportProcess() {
 
   if (authorized) {
     console.log('Already authorized. Fetching collection.');
-    getCollection(); // Directly fetch and display the collection
+    getLibrary(); // Directly fetch and display the collection
   } else {
     console.log('Not authorized. Opening authorization URL.');
     await openAuthorizationUrl();
     checkAuthorizationStatus(); // Start polling for authorization status
   }
+}
+
+function displayLibrary(data) {
+  const libraryList = document.getElementById('list-discogs');
+  libraryList.innerHTML = ''; // Clear previous data
+
+  const template = document.getElementById('collectionTemplate');
+
+  data.forEach((collection, index) => {
+    const clone = document.importNode(template.content, true);
+
+    // Now you can find and populate the specific parts of the template
+    clone.querySelector('.collection-index').textContent = `${index + 1}`;
+    clone.querySelector('.collection-name').textContent = collection.folder;
+    clone.querySelector('.collection-count').textContent = collection.count;
+
+    // Set the ID on the <li> for reference
+    const listItem = clone.querySelector('li');
+    listItem.id = `folder-${index + 1}`;
+
+    libraryList.appendChild(clone);
+  });
 }
 
 function displayCollection(data) {
@@ -49,6 +71,25 @@ function checkAuthorizationStatus() {
       getCollection(); // Fetch the collection
     }
   }, 5000);
+}
+
+function getLibrary() {
+  console.log(`Fetching folders`);
+
+  fetch(`http://127.0.0.1:5000/get_library`)
+    .then((response) => {
+      if (!response.ok) {
+        // If server response is not ok, throw an error with the status
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      displayLibrary(data); // Update the UI with the data
+    })
+    .catch((error) => {
+      console.error('Fetch error:', error.message);
+    });
 }
 
 function getCollection() {

@@ -16,9 +16,15 @@ def retrieve_tokens():
 
     if not access_token or not access_token_secret:
         print("Access token or secret is missing.")
-        return None
+        return None, None
 
-    # Initialize the Discogs client with the access token
+    return access_token, access_token_secret
+
+def initialize_discogs_client():
+    access_token, access_token_secret = retrieve_tokens()
+    if not access_token or not access_token_secret:
+        return None
+    
     d = discogs_client.Client(
         'my_user_agent/1.0',
         consumer_key=consumer_key,
@@ -27,38 +33,36 @@ def retrieve_tokens():
         secret=access_token_secret,
     )
 
+    return d
+
+def import_library():
+    print("Fetching library")
+    d = initialize_discogs_client()
+    if d is None:
+        print("Failed to initialize Discogs client.")
+        return
+
     me = d.identity()
+    folders = me.collection_folders
 
-    return me
+    library = []
 
-def import_library ():
-    pass
+    for index, folder in enumerate(folders, start=1):
+        library_item = {'index': index, 'folder': folder.name, 'count': 'count placeholder'}
+        library.append(library_item)
+        print(library_item)
+
+    return library
 
 def import_collection():
 
     print("importing collection") 
-    # Retrieve the stored access token and secret
-    access_token = session.get('access_token')
-    access_token_secret = session.get('access_token_secret')
-
-    if not access_token or not access_token_secret:
-        print("Access token or secret is missing.")
-        return None
-
-    # Initialize the Discogs client with the access token
-    d = discogs_client.Client(
-        'my_user_agent/1.0',
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret,
-        token=access_token,
-        secret=access_token_secret,
-    )
-
-    me = retrieve_tokens()
-
-    if not me:
-        print("Failed to authenticate with the provided access token.")
+    d = initialize_discogs_client()
+    if d is None:
+        print("Failed to initialize Discogs client.")
         return
+
+    me = d.identity()
 
     print('user authorized:' + str(me))
 
