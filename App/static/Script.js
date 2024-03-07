@@ -18,15 +18,15 @@ function displayLibrary(data) {
   const libraryList = document.getElementById('list-discogs');
   libraryList.innerHTML = ''; // Clear previous data
 
-  const template = document.getElementById('collectionTemplate');
+  const template = document.getElementById('folderTemplate');
 
-  data.forEach((collection, index) => {
+  data.forEach((folder, index) => {
     const clone = document.importNode(template.content, true);
 
     // Now you can find and populate the specific parts of the template
-    clone.querySelector('.collection-index').textContent = `${index + 1}`;
-    clone.querySelector('.collection-name').textContent = collection.folder;
-    clone.querySelector('.collection-count').textContent = collection.count;
+    clone.querySelector('.folder-index').textContent = `${index + 1}`;
+    clone.querySelector('.folder-name').textContent = folder.folder;
+    clone.querySelector('.folder-count').textContent = folder.count;
 
     // Set the ID on the <li> for reference
     const listItem = clone.querySelector('li');

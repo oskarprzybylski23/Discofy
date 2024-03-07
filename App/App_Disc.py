@@ -48,9 +48,9 @@ def import_library():
     library = []
 
     for index, folder in enumerate(folders, start=1):
-        library_item = {'index': index, 'folder': folder.name, 'count': 'count placeholder'}
-        library.append(library_item)
-        print(library_item)
+        folder_item = {'index': index, 'folder': folder.name, 'count': 'count placeholder'}
+        library.append(folder_item)
+        print(folder_item)
 
     return library
 
@@ -68,8 +68,6 @@ def import_collection():
 
     # Create a list of records in the collection with position information
     collection = []
-
-    print(me.collection_folders)
 
     for index, item in enumerate(me.collection_folders[0].releases, start=1):
         release = {'index': index, 'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,

@@ -61,8 +61,6 @@ def handle_create_playlist():
 
 @app.route('/see_report')
 def see_report():
-    # Assuming your Flask app is located in the App directory
-    # and the export_report.txt is in the parent directory
     file_path = os.path.join(current_app.root_path, '..', 'export_report.txt')
     absolute_file_path = os.path.abspath(file_path)
     print(f"Attempting to access file at: {absolute_file_path}")
