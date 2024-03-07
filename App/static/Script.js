@@ -22,7 +22,6 @@ function displayLibrary(data) {
 
   data.forEach((folder, index) => {
     const clone = document.importNode(template.content, true);
-
     // Now you can find and populate the specific parts of the template
     clone.querySelector('.folder-index').textContent = `${index + 1}`;
     clone.querySelector('.folder-name').textContent = folder.folder;
@@ -30,7 +29,9 @@ function displayLibrary(data) {
 
     // Set the ID on the <li> for reference
     const listItem = clone.querySelector('li');
-    listItem.id = `folder-${index + 1}`;
+    listItem.id = `folder-${index}`;
+
+    listItem.addEventListener('click', () => getCollection(index));
 
     libraryList.appendChild(clone);
   });
@@ -92,10 +93,10 @@ function getLibrary() {
     });
 }
 
-function getCollection() {
-  console.log(`Fetching collection`);
+function getCollection(folder) {
+  console.log(`Fetching collection for folder ${folder}`);
 
-  fetch(`http://127.0.0.1:5000/get_collection`)
+  fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
     .then((response) => {
       if (!response.ok) {
         // If server response is not ok, throw an error with the status

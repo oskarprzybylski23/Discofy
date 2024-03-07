@@ -54,7 +54,7 @@ def import_library():
 
     return library
 
-def import_collection():
+def import_collection(folder_id=0):
 
     print("importing collection") 
     d = initialize_discogs_client()
@@ -69,7 +69,9 @@ def import_collection():
     # Create a list of records in the collection with position information
     collection = []
 
-    for index, item in enumerate(me.collection_folders[0].releases, start=1):
+    selected_folder = me.collection_folders[folder_id]
+
+    for index, item in enumerate(selected_folder.releases, start=1):
         release = {'index': index, 'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,
                    'year': item.release.fetch('year'), 'discogs_id': item.release.fetch('id')}
         collection.append(release)

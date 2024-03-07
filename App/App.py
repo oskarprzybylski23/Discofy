@@ -44,8 +44,9 @@ def get_library():
 
 @app.route('/get_collection', methods=['GET'])
 def get_collection():
+    folder_id = request.args.get('folder', default=0, type=int)  # Get folder id from query parameters, default to 0
     try:
-        output = App_Disc.import_collection()
+        output = App_Disc.import_collection(folder_id)
         return jsonify(output)
     except Exception as e:
         print(f"Error during collection import: {e}")
