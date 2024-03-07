@@ -62,6 +62,7 @@ function displayCollection(data) {
     clone.querySelector('.album-index').textContent = `${index + 1}`;
     clone.querySelector('.album-artist').textContent = album.artist;
     clone.querySelector('.album-title').textContent = album.title;
+    clone.querySelector('.album-cover').setAttribute('src', album.cover);
 
     // Set the ID on the <li> for reference
     const listItem = clone.querySelector('li');
