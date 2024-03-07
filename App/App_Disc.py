@@ -44,13 +44,13 @@ def import_library():
 
     me = d.identity()
     folders = me.collection_folders
-
+    
     library = []
 
     for index, folder in enumerate(folders, start=1):
-        folder_item = {'index': index, 'folder': folder.name, 'count': 'count placeholder'}
+        folder_item = {'index': index, 'folder': folder.name, 'count': str(folder.count) + " records"}
         library.append(folder_item)
-        print(folder_item)
+        print(folder.releases)
 
     return library
 
