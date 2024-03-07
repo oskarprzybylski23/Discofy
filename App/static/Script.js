@@ -68,7 +68,7 @@ function checkAuthorizationStatus() {
 
     if (authorized) {
       clearInterval(interval);
-      getCollection(); // Fetch the collection
+      getLibrary(); // Fetch the collection
     }
   }, 5000);
 }
