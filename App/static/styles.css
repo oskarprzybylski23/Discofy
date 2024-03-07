@@ -78,8 +78,11 @@ header {
 .album, .folder {
     font-size: 1rem;
     display: flex;
-    margin-top: 1px;
-    padding: 5px;
+    align-items: center;
+    gap: 7px;
+    margin-top: 2px;
+    padding: 7px;
+    height: 40px;
     background-color: var(--mid-background);
     border-radius: 5px;
     color: var(--font-bright);
@@ -94,21 +97,21 @@ cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 10%;
+    width: 2rem;
     color: var(--font-dark);
+    font-size: 0.9rem;
 }
 
 .album-text, .folder-text {
     display: flex;
     flex-direction: column;
-    justify-content: left;
-    width: 90%;
-    margin-left: 10px;
+    width: 70%;
 }
 
 .album-title, .folder-name {
-    overflow-x: hidden;
-    font-weight: 600;
+    overflow-y: hidden;
+    font-weight: 400;
+    font-size: 0.9rem;
 }
 
 .album-artist, .folder-count {
@@ -139,5 +142,6 @@ cursor: pointer;
 }
 
 .album-cover {
-    height: 45px;
+    height: 40px;
+    border-radius: 5px;
 }
