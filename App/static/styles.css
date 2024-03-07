@@ -132,3 +132,7 @@ cursor: pointer;
 .button:active {
     background-color: var(--mid-background);
 }
+
+#libraryReturnButton {
+    display: none;
+}

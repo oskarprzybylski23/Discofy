@@ -14,7 +14,19 @@ async function startImportProcess() {
   }
 }
 
+function returnToLibrary() {
+  toggleReturnButton(false);
+  getLibrary();
+}
+
+function toggleReturnButton(showButton) {
+  console.log('toggleButton enter');
+  const returnButton = document.getElementById('libraryReturnButton');
+  returnButton.style.display = showButton ? 'block' : 'none';
+}
+
 function displayLibrary(data) {
+  // Change later to rember data so no repeat fetch is required if library is to be displayed again.
   const libraryList = document.getElementById('list-discogs');
   libraryList.innerHTML = ''; // Clear previous data
 
@@ -57,6 +69,7 @@ function displayCollection(data) {
 
     albumList.appendChild(clone);
   });
+  toggleReturnButton(true);
 }
 
 function checkAuthorizationStatus() {
