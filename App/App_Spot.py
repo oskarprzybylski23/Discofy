@@ -5,15 +5,14 @@ from flask import session
 
 load_dotenv()
 
-def read_playlist_data(file_path):
+def read_collection_data(file_path):
     with open(file_path, 'r') as json_file:
-        playlist_data = json.load(json_file)
-    return playlist_data
+        collection_data = json.load(json_file)
+    return collection_data
 
-
-def create_playlist():
+def transfer_from_discogs():
     token = session['tokens']['access_token']
-    print("Token:" + token)
+    # print("Token:" + token)
 
     if not token:
         print("User authentication failed!")
@@ -22,7 +21,69 @@ def create_playlist():
     spotify = spotipy.Spotify(auth=token)
 
     # Playlist info
-    playlist_data = read_playlist_data("./App/collection_export.json")
+    collection_data = read_collection_data("./App/collection_export.json")
+    playlist_data = []
+
+    # Create placeholders for statistics
+    failed_export = []
+    
+    # Find and add tracks to the playlist
+    for release in collection_data:
+        artist = release['artist']
+        title = release['title']
+        result = spotify.search(q=f"artist:{artist} album:{title}", type="album")
+
+        if result["albums"]["items"]:
+            album = result["albums"]["items"][0]
+            # print(json.dumps(album, indent=4))
+            # print("Transfer: Album Data: "+str(album))
+
+            # placeholder for album data
+            album_data = {}
+            
+            
+
+            #for display
+            album_data["artist"] = album["artists"][0]["name"]
+            # print("Transfer: Album Artist: "+str(album_artist))
+            album_data["name"] = album["name"]
+            album_data["image"] = album["images"][2]["url"]
+            album_data["url"] = album["external_urls"]["spotify"]
+
+            # for later use
+            album_data["id"] = album["id"]
+            album_data["uri"] = album["uri"]
+
+            playlist_data.append(album_data)
+            print(album_data)
+            print("Successfully transferred: " + album_data["name"] + " by " + album_data["artist"])
+
+        else:
+            failed_export.append([artist, title])
+            print("Failed to add: " + artist + " - " + title)
+
+    print(
+            "\n" + f"{len(playlist_data)} albums transferred."
+        )
+    print(f"failed to find: {failed_export}")
+
+    print(json.dumps(playlist_data, indent=2))
+
+    return playlist_data
+
+
+def create_playlist():
+    token = session['tokens']['access_token']
+    # print("Token:" + token)
+
+    if not token:
+        print("User authentication failed!")
+        return False
+
+    spotify = spotipy.Spotify(auth=token)
+
+    # Playlist info
+    playlist_data = read_collection_data("./App/collection_export.json")
     playlist_name = "Discogs Collection"  # Change this to dynamically set based on user input from the web
     playlist_description = "This is a playlist created from Discogs collection."
 
