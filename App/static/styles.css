@@ -137,8 +137,19 @@ cursor: pointer;
     background-color: var(--mid-background);
 }
 
-#libraryReturnButton {
+#libraryReturnButton, #libraryTransferButton {
     display: none;
+}
+
+#libraryTransferButton {
+    height: 50px;
+}
+
+#transfer-button-container {
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .album-cover {

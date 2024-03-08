@@ -20,9 +20,10 @@ function returnToLibrary() {
 }
 
 function toggleReturnButton(showButton) {
-  console.log('toggleButton enter');
   const returnButton = document.getElementById('libraryReturnButton');
+  const transferButton = document.getElementById('libraryTransferButton');
   returnButton.style.display = showButton ? 'block' : 'none';
+  transferButton.style.display = showButton ? 'block' : 'none';
 }
 
 function displayLibrary(data) {
