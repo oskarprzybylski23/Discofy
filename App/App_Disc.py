@@ -82,6 +82,7 @@ def import_collection(folder_id=0):
     return collection
 
 def export_to_json(collection, filename="collection_export.json"):
+    print("creating json")
     app_folder = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(app_folder, filename)
 

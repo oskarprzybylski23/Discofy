@@ -22,7 +22,7 @@ def create_playlist():
     spotify = spotipy.Spotify(auth=token)
 
     # Playlist info
-    playlist_data = read_playlist_data("collection_export.json")
+    playlist_data = read_playlist_data("./App/collection_export.json")
     playlist_name = "Discogs Collection"  # Change this to dynamically set based on user input from the web
     playlist_description = "This is a playlist created from Discogs collection."
 
