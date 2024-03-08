@@ -74,6 +74,30 @@ function displayCollection(data) {
   toggleReturnButton(true);
 }
 
+function displayPlaylist(data) {
+  // Change later to rember data so no repeat fetch is required if library is to be displayed again.
+  const PlaylistList = document.getElementById('list-spotify');
+  PlaylistList.innerHTML = ''; // Clear previous data
+
+  const template = document.getElementById('albumTemplate');
+
+  data.forEach((album, index) => {
+    const clone = document.importNode(template.content, true);
+
+    // Now you can find and populate the specific parts of the template
+    clone.querySelector('.album-index').textContent = `${index + 1}`;
+    clone.querySelector('.album-artist').textContent = album.artist;
+    clone.querySelector('.album-title').textContent = album.title;
+    clone.querySelector('.album-cover').setAttribute('src', album.image);
+
+    // Set the ID on the <li> for reference
+    const listItem = clone.querySelector('li');
+    listItem.id = `${album.discogs_id}`;
+
+    PlaylistList.appendChild(clone);
+  });
+}
+
 function checkAuthorizationStatus() {
   // Polling every 5 seconds to check if authorization is complete
   const interval = setInterval(async () => {
@@ -121,6 +145,25 @@ function getCollection(folder) {
     })
     .then((data) => {
       displayCollection(data); // Update the UI with the data
+    })
+    .catch((error) => {
+      console.error('Fetch error:', error.message);
+    });
+}
+
+function transferCollectionToSpotify() {
+  console.log(`Transfering to Spotify`);
+
+  fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
+    .then((response) => {
+      if (!response.ok) {
+        // If server response is not ok, throw an error with the status
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      displayPlaylist(data); // Update the UI with the data
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);

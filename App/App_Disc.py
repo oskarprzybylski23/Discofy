@@ -50,7 +50,7 @@ def import_library():
     for index, folder in enumerate(folders, start=1):
         folder_item = {'index': index, 'folder': folder.name, 'count': str(folder.count) + " records"}
         library.append(folder_item)
-        print(folder.releases)
+        # print(folder.releases)
 
     return library
 

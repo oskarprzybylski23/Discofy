@@ -46,7 +46,7 @@ def transfer_from_discogs():
             #for display
             album_data["artist"] = album["artists"][0]["name"]
             # print("Transfer: Album Artist: "+str(album_artist))
-            album_data["name"] = album["name"]
+            album_data["title"] = album["name"]
             album_data["image"] = album["images"][2]["url"]
             album_data["url"] = album["external_urls"]["spotify"]
 
@@ -56,7 +56,7 @@ def transfer_from_discogs():
 
             playlist_data.append(album_data)
             print(album_data)
-            print("Successfully transferred: " + album_data["name"] + " by " + album_data["artist"])
+            print("Successfully transferred: " + album_data["title"] + " by " + album_data["artist"])
 
         else:
             failed_export.append([artist, title])
