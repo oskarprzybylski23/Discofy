@@ -20,7 +20,6 @@
     <main>
     <div id="button-section">
       <button class="button" onclick="startImportProcess()">Import Collection</button>
-      <button class="button" onclick="createPlaylist()">Create Playlist</button>
       <button class="button" onclick="getSpotifyAuthURLAndRedirect()">Connect Spotify</button>
       <button class="button" onclick="seeReport()">See Report</button>
       <button class="button" onclick="logoutUser()">Logout</button>
@@ -37,6 +36,8 @@
       <div class="list-section" id="list-container-spotify">
         <h2>Spotify Playlist</h2>
         <ul class="collection-list" id="list-spotify"></ul>
+        <input type="text" id="playlist-name" maxlength="100" placeholder="Playlist Name">
+        <button class="button" onclick="createPlaylist()">Create Playlist</button>
       </div>
     </div>
     <script src="../static/Script.js"></script>
