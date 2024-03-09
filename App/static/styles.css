@@ -128,9 +128,14 @@ input:disabled {
     color: var(--font-bright);
 }
 
-.album:hover, .folder:hover {
+.album:hover {
 background-color: var(--background);
-cursor: pointer;
+cursor: default;
+}
+
+.folder:hover {
+    background-color: var(--background);
+    cursor: pointer;
 }
 
 .album-index, .folder-index {
