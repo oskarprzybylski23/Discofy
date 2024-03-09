@@ -18,7 +18,6 @@ def read_playlist_data(file_path):
 
 def transfer_from_discogs():
     token = session['tokens']['access_token']
-    # print("Token:" + token)
 
     if not token:
         print("User authentication failed!")
@@ -42,16 +41,12 @@ def transfer_from_discogs():
         if result["albums"]["items"]:
             album = result["albums"]["items"][0]
             # print(json.dumps(album, indent=4))
-            # print("Transfer: Album Data: "+str(album))
 
             # placeholder for album data
             album_data = {}
             
-            
-
             #for display
             album_data["artist"] = album["artists"][0]["name"]
-            # print("Transfer: Album Artist: "+str(album_artist))
             album_data["title"] = album["name"]
             album_data["image"] = album["images"][2]["url"]
             album_data["url"] = album["external_urls"]["spotify"]
@@ -61,20 +56,20 @@ def transfer_from_discogs():
             album_data["uri"] = album["uri"]
 
             playlist_data.append(album_data)
-            print(album_data)
             print("Successfully transferred: " + album_data["title"] + " by " + album_data["artist"])
 
         else:
-            failed_export.append([artist, title])
+            failed_export.append({"artist": artist, "title": title})
             print("Failed to add: " + artist + " - " + title)
 
     export_playlist_to_json(playlist_data)
 
+    # info to be passed to UI later
+    print(f"failed to find: {json.dumps(failed_export, indent=2)}")
+    # log for debugging only
     print(
             "\n" + f"{len(playlist_data)} albums transferred."
         )
-    print(f"failed to find: {failed_export}")
-
     print(json.dumps(playlist_data, indent=2))
 
     return playlist_data
@@ -82,7 +77,6 @@ def transfer_from_discogs():
 
 def create_playlist():
     token = session['tokens']['access_token']
-    # print("Token:" + token)
 
     if not token:
         print("User authentication failed!")
@@ -118,6 +112,7 @@ def create_playlist():
                 track_uris_total.append(track_uris)
                 tracks_number = tracks_number + len(track_uris)
 
+        # info to be passed to UI later
         print(
             "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
         )
