@@ -78,7 +78,7 @@ def transfer_from_discogs():
     return playlist_data
 
 
-def create_playlist():
+def create_playlist(name):
     token = session['tokens']['access_token']
 
     if not token:
@@ -89,7 +89,7 @@ def create_playlist():
 
     # Playlist info
     playlist_data = read_playlist_data("./App/playlist_albums.json")
-    playlist_name = "Discogs Collection"  # Change this to dynamically set based on user input from the web
+    playlist_name = name
     playlist_description = "This is a playlist created from Discogs collection using Discofy"
 
     try:    

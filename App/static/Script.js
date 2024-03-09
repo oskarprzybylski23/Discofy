@@ -19,13 +19,6 @@ function returnToLibrary() {
   getLibrary();
 }
 
-function toggleReturnButton(showButton) {
-  const returnButton = document.getElementById('libraryReturnButton');
-  const transferButton = document.getElementById('libraryTransferButton');
-  returnButton.style.display = showButton ? 'block' : 'none';
-  transferButton.style.display = showButton ? 'block' : 'none';
-}
-
 function displayLibrary(data) {
   // Change later to rember data so no repeat fetch is required if library is to be displayed again.
   const libraryList = document.getElementById('list-discogs');
@@ -163,7 +156,18 @@ function transferCollectionToSpotify() {
       return response.json();
     })
     .then((data) => {
-      displayPlaylist(data); // Update the UI with the data
+      // Enable and/or focus input element
+      const listSpotify = document.getElementById('list-spotify'); //Check if there is already a playlist loaded to avoid disabling input
+      const hasListItems = listSpotify.children.length > 0;
+
+      if (!hasListItems) {
+        togglePlaylistNameInput();
+      }
+
+      focusPlaylistNameInput();
+
+      // Update the UI with the data
+      displayPlaylist(data);
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
@@ -224,14 +228,23 @@ function getSpotifyAuthURLAndRedirect() {
 }
 
 function createPlaylist() {
+  playlistName = document.getElementById('playlist-name').value;
+
+  // Check if the playlistName is empty
+  if (!playlistName.trim()) {
+    // Update the UI to show an error message
+    document.getElementById('feedback').innerText =
+      'Please enter a playlist name.';
+    return;
+  }
+
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
     headers: {
       'Content-Type': 'application/json',
     },
-    // Optionally, include other data necessary for playlist creation in the request body
     body: JSON.stringify({
-      // Your request body content here, if needed
+      name: playlistName,
     }),
   })
     .then((response) => response.json())
@@ -250,7 +263,6 @@ function createPlaylist() {
     });
 }
 
-
 // ---- OTHER ----
 
 function seeReport() {
@@ -259,7 +271,9 @@ function seeReport() {
       if (!response.ok) {
         if (response.status === 404) {
           // Handle file not found specifically
-          alert("The report file has not been found. It is possible that the playlist has not been created yet.");
+          alert(
+            'The report file has not been found. It is possible that the playlist has not been created yet.'
+          );
         } else {
           // Handle other types of errors
           throw new Error('Network response was not ok.');
@@ -287,4 +301,30 @@ function seeReport() {
       document.body.removeChild(a);
     })
     .catch((error) => console.error('Error downloading report:', error));
+}
+
+// ---- ELEMENT TOGGLE AND FOCUS----
+
+function togglePlaylistNameInput() {
+  const inputField = document.getElementById('playlist-name');
+  inputField.disabled = !inputField.disabled;
+}
+
+function focusPlaylistNameInput() {
+  const inputField = document.getElementById('playlist-name');
+  inputField.focus();
+}
+
+function toggleCreatePlaylistButton() {
+  // Check if the input is not empty to enable the button, else disable it
+  const playlistName = document.getElementById('playlist-name').value;
+  const button = document.getElementById('create-playlist-button');
+  button.disabled = !playlistName.trim(); // Disable button if input is empty or only whitespace
+}
+
+function toggleReturnButton(showButton) {
+  const returnButton = document.getElementById('libraryReturnButton');
+  const transferButton = document.getElementById('libraryTransferButton');
+  returnButton.style.display = showButton ? 'block' : 'none';
+  transferButton.style.display = showButton ? 'block' : 'none';
 }

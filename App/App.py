@@ -63,7 +63,9 @@ def handle_transfer_to_spotify():
 
 @app.route('/create_playlist', methods=['POST'])
 def handle_create_playlist():
-    success = App_Spot.create_playlist()
+    data = request.get_json()
+    playlist_name = data.get('name')
+    success = App_Spot.create_playlist(playlist_name)
     if success:
         return jsonify({"status": "success", "message": "Playlist created successfully."})
     else:

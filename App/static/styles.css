@@ -1,7 +1,7 @@
 /* ==BASE STYLES AND GLOBAL RULES== */
 :root {
     /* Color palette */
-    --header: #1db954;
+    --spotify-green: #1db954;
     --background: #121212;
     --mid-background: #212121;
     --light-background: #535353;
@@ -20,7 +20,7 @@ body {
 }
 
 h1 {
-    color: var(--header);
+    color: var(--spotify-green);
 
 }
 
@@ -46,6 +46,46 @@ header {
     align-items: center;
     display: flex;
     gap: 1rem;
+}
+
+input {
+    background-color: var(--mid-background);
+    color: var(--font-bright);
+    border: none;
+    border-radius: 500px;
+    padding: 10px 10px;
+}
+
+input:disabled {
+    background-color: var(--mid-background);
+    opacity: 50%;
+    color: var(--font-dark);
+    cursor:default;
+}
+
+.button {
+    background-color: var(--mid-background);
+    color: var(--font-bright);
+    border: none;
+    border-radius: 500px;
+    padding: 10px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.button:hover {
+    background-color: var(--light-background); 
+}
+
+.button:active {
+    background-color: var(--mid-background);
+}
+
+.button:disabled {
+    background-color: var(--mid-background);
+    opacity: 50%;
+    color: var(--font-dark);
+    cursor:default;
 }
 
 #display-section {
@@ -119,24 +159,6 @@ cursor: pointer;
     font-size: 0.8rem;
 }
 
-.button {
-    background-color: var(--mid-background);
-    color: var(--font-bright);
-    border: none;
-    border-radius: 500px;
-    padding: 10px 10px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.button:hover {
-    background-color: var(--light-background); 
-}
-
-.button:active {
-    background-color: var(--mid-background);
-}
-
 #libraryReturnButton, #libraryTransferButton {
     display: none;
 }
@@ -155,6 +177,10 @@ cursor: pointer;
 .album-cover {
     height: 40px;
     border-radius: 5px;
+}
+
+#feedback {
+    color: var(--spotify-green);
 }
 
 /* SCROLLBAR */
