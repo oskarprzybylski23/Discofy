@@ -5,7 +5,7 @@
     --background: #121212;
     --mid-background: #212121;
     --light-background: #535353;
-    --highlight: #535353;
+    --highlight: #787878;
     --font-bright: #ffffff;
     --font-dark: #b3b3b3;
     /* Fonts */
@@ -156,3 +156,24 @@ cursor: pointer;
     height: 40px;
     border-radius: 5px;
 }
+
+/* SCROLLBAR */
+/* Width of the scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  /* Track of the scrollbar */
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  
+  /* Handle of the scrollbar */
+  ::-webkit-scrollbar-thumb {
+    background: var(--light-background);
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--highlight);
+  }
