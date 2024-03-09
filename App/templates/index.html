@@ -19,28 +19,48 @@
     </header>
     <main>
     <div id="button-section">
-      <button onclick="startImportProcess()">Import Collection</button>
-      <button onclick="createPlaylist()">Create Playlist</button>
-      <button onclick="getSpotifyAuthURLAndRedirect()">Connect Spotify</button>
-      <button onclick="seeReport()">See Report</button>
-      <button onclick="logoutUser()">Logout</button>
+      <button class="button" onclick="startImportProcess()">Import Collection</button>
+      <button class="button" onclick="getSpotifyAuthURLAndRedirect()">Connect Spotify</button>
+      <button class="button" onclick="seeReport()">See Report</button>
+      <button class="button" onclick="logoutUser()">Logout</button>
     </div>
     <div id="display-section">
       <div class="list-section" id="list-container-discogs">
         <h2>Discogs Collection</h2>
         <ul class="collection-list" id="list-discogs"></ul>
+        <button class="button" id="libraryReturnButton" onclick="returnToLibrary()">Return to Folder View</button> 
+      </div>
+      <div id="transfer-button-container">
+        <button class="button" id="libraryTransferButton" onclick="transferCollectionToSpotify()">Move to Spotify</button>
       </div>
       <div class="list-section" id="list-container-spotify">
         <h2>Spotify Playlist</h2>
         <ul class="collection-list" id="list-spotify"></ul>
+        <input type="text" id="playlist-name" maxlength="100" placeholder="Enter your playlist name" oninput="toggleCreatePlaylistButton()" disabled>
+        <button class="button" id="create-playlist-button" onclick="createPlaylist()" disabled>Create Playlist</button>
       </div>
+    </div>
+    <div id="feedback-section">
+      <div id="feedback"></div>
     </div>
     <script src="../static/Script.js"></script>
   </main>
+  <template id="folderTemplate">
+    <li class="library-item">
+      <div class="folder">
+        <span class="folder-index"></span>
+        <div class="folder-text">
+          <span class="folder-name"></span>
+          <span class="folder-count"></span>
+        </div>
+      </div>
+    </li>
+  </template>
   <template id="albumTemplate">
     <li class="collection-item">
       <div class="album">
         <span class="album-index"></span>
+        <img class="album-cover" src="" alt="Album Cover">
         <div class="album-text">
           <span class="album-title"></span>
           <span class="album-artist"></span>

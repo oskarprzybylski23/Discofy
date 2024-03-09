@@ -32,10 +32,30 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 def index():
     return render_template('index.html')
 
+@app.route('/get_library', methods=['GET'])
+def get_library():
+    try:
+        output = App_Disc.import_library()
+        # print(output)
+        return jsonify(output)
+    except Exception as e:
+        print(f"Error during collection import: {e}")
+        return jsonify({"error": "Internal server error during collection import"}), 500
+
 @app.route('/get_collection', methods=['GET'])
 def get_collection():
+    folder_id = request.args.get('folder', default=0, type=int)  # Get folder id from query parameters, default to 0
     try:
-        output = App_Disc.import_collection()
+        output = App_Disc.import_collection(folder_id)
+        return jsonify(output)
+    except Exception as e:
+        print(f"Error during collection import: {e}")
+        return jsonify({"error": "Internal server error during collection import"}), 500
+
+@app.route('/transfer_to_spotify', methods=['GET'])
+def handle_transfer_to_spotify():
+    try:
+        output = App_Spot.transfer_from_discogs()
         return jsonify(output)
     except Exception as e:
         print(f"Error during collection import: {e}")
@@ -43,7 +63,9 @@ def get_collection():
 
 @app.route('/create_playlist', methods=['POST'])
 def handle_create_playlist():
-    success = App_Spot.create_playlist()  # Consider running this in a background thread if it's long-running
+    data = request.get_json()
+    playlist_name = data.get('name')
+    success = App_Spot.create_playlist(playlist_name)
     if success:
         return jsonify({"status": "success", "message": "Playlist created successfully."})
     else:
@@ -51,8 +73,6 @@ def handle_create_playlist():
 
 @app.route('/see_report')
 def see_report():
-    # Assuming your Flask app is located in the App directory
-    # and the export_report.txt is in the parent directory
     file_path = os.path.join(current_app.root_path, '..', 'export_report.txt')
     absolute_file_path = os.path.abspath(file_path)
     print(f"Attempting to access file at: {absolute_file_path}")
@@ -148,7 +168,7 @@ def get_spotify_auth_url():
         cache_path=".token_cache"
     )
     auth_url = oauth_object.get_authorize_url()
-    print(auth_url)
+    # print(auth_url)
     return jsonify({'auth_url': auth_url})
 
 
@@ -161,7 +181,7 @@ def exchange_code_for_token(auth_code):
         cache_path=".token_cache"
     )
     token_info = oauth_object.get_access_token(code=auth_code)
-    print(token_info)
+    # print(token_info)
     return token_info  # This includes the access token
 
 
@@ -189,7 +209,7 @@ def spotify_callback():
     response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
     token_info = response.json()
     session['tokens'] = token_info  # Store token info in the session
-    print(session['tokens'])
+    # print(session['tokens'])
     return 'Login successful!'
 
 @app.route('/logout')

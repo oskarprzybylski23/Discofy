@@ -6,12 +6,41 @@ async function startImportProcess() {
 
   if (authorized) {
     console.log('Already authorized. Fetching collection.');
-    getCollection(); // Directly fetch and display the collection
+    getLibrary(); // Directly fetch and display the collection
   } else {
     console.log('Not authorized. Opening authorization URL.');
     await openAuthorizationUrl();
     checkAuthorizationStatus(); // Start polling for authorization status
   }
+}
+
+function returnToLibrary() {
+  toggleReturnButton(false);
+  getLibrary();
+}
+
+function displayLibrary(data) {
+  // Change later to rember data so no repeat fetch is required if library is to be displayed again.
+  const libraryList = document.getElementById('list-discogs');
+  libraryList.innerHTML = ''; // Clear previous data
+
+  const template = document.getElementById('folderTemplate');
+
+  data.forEach((folder, index) => {
+    const clone = document.importNode(template.content, true);
+    // Now you can find and populate the specific parts of the template
+    clone.querySelector('.folder-index').textContent = `${index + 1}`;
+    clone.querySelector('.folder-name').textContent = folder.folder;
+    clone.querySelector('.folder-count').textContent = folder.count;
+
+    // Set the ID on the <li> for reference
+    const listItem = clone.querySelector('li');
+    listItem.id = `folder-${index}`;
+
+    listItem.addEventListener('click', () => getCollection(index));
+
+    libraryList.appendChild(clone);
+  });
 }
 
 function displayCollection(data) {
@@ -27,12 +56,38 @@ function displayCollection(data) {
     clone.querySelector('.album-index').textContent = `${index + 1}`;
     clone.querySelector('.album-artist').textContent = album.artist;
     clone.querySelector('.album-title').textContent = album.title;
+    clone.querySelector('.album-cover').setAttribute('src', album.cover);
 
     // Set the ID on the <li> for reference
     const listItem = clone.querySelector('li');
     listItem.id = `${album.discogs_id}`;
 
     albumList.appendChild(clone);
+  });
+  toggleReturnButton(true);
+}
+
+function displayPlaylist(data) {
+  // Change later to rember data so no repeat fetch is required if library is to be displayed again.
+  const PlaylistList = document.getElementById('list-spotify');
+  PlaylistList.innerHTML = ''; // Clear previous data
+
+  const template = document.getElementById('albumTemplate');
+
+  data.forEach((album, index) => {
+    const clone = document.importNode(template.content, true);
+
+    // Now you can find and populate the specific parts of the template
+    clone.querySelector('.album-index').textContent = `${index + 1}`;
+    clone.querySelector('.album-artist').textContent = album.artist;
+    clone.querySelector('.album-title').textContent = album.title;
+    clone.querySelector('.album-cover').setAttribute('src', album.image);
+
+    // Set the ID on the <li> for reference
+    const listItem = clone.querySelector('li');
+    listItem.id = `${album.discogs_id}`;
+
+    PlaylistList.appendChild(clone);
   });
 }
 
@@ -46,15 +101,34 @@ function checkAuthorizationStatus() {
 
     if (authorized) {
       clearInterval(interval);
-      getCollection(); // Fetch the collection
+      getLibrary(); // Fetch the collection
     }
   }, 5000);
 }
 
-function getCollection() {
-  console.log(`Fetching collection`);
+function getLibrary() {
+  console.log(`Fetching folders`);
 
-  fetch(`http://127.0.0.1:5000/get_collection`)
+  fetch(`http://127.0.0.1:5000/get_library`)
+    .then((response) => {
+      if (!response.ok) {
+        // If server response is not ok, throw an error with the status
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      displayLibrary(data); // Update the UI with the data
+    })
+    .catch((error) => {
+      console.error('Fetch error:', error.message);
+    });
+}
+
+function getCollection(folder) {
+  console.log(`Fetching collection for folder ${folder}`);
+
+  fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
     .then((response) => {
       if (!response.ok) {
         // If server response is not ok, throw an error with the status
@@ -64,6 +138,36 @@ function getCollection() {
     })
     .then((data) => {
       displayCollection(data); // Update the UI with the data
+    })
+    .catch((error) => {
+      console.error('Fetch error:', error.message);
+    });
+}
+
+function transferCollectionToSpotify() {
+  console.log(`Transfering to Spotify`);
+
+  fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
+    .then((response) => {
+      if (!response.ok) {
+        // If server response is not ok, throw an error with the status
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      // Enable and/or focus input element
+      const listSpotify = document.getElementById('list-spotify'); //Check if there is already a playlist loaded to avoid disabling input
+      const hasListItems = listSpotify.children.length > 0;
+
+      if (!hasListItems) {
+        togglePlaylistNameInput();
+      }
+
+      focusPlaylistNameInput();
+
+      // Update the UI with the data
+      displayPlaylist(data);
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
@@ -124,14 +228,23 @@ function getSpotifyAuthURLAndRedirect() {
 }
 
 function createPlaylist() {
+  playlistName = document.getElementById('playlist-name').value;
+
+  // Check if the playlistName is empty
+  if (!playlistName.trim()) {
+    // Update the UI to show an error message
+    document.getElementById('feedback').innerText =
+      'Please enter a playlist name.';
+    return;
+  }
+
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
     headers: {
       'Content-Type': 'application/json',
     },
-    // Optionally, include other data necessary for playlist creation in the request body
     body: JSON.stringify({
-      // Your request body content here, if needed
+      name: playlistName,
     }),
   })
     .then((response) => response.json())
@@ -150,7 +263,6 @@ function createPlaylist() {
     });
 }
 
-
 // ---- OTHER ----
 
 function seeReport() {
@@ -159,7 +271,9 @@ function seeReport() {
       if (!response.ok) {
         if (response.status === 404) {
           // Handle file not found specifically
-          alert("The report file has not been found. It is possible that the playlist has not been created yet.");
+          alert(
+            'The report file has not been found. It is possible that the playlist has not been created yet.'
+          );
         } else {
           // Handle other types of errors
           throw new Error('Network response was not ok.');
@@ -187,4 +301,30 @@ function seeReport() {
       document.body.removeChild(a);
     })
     .catch((error) => console.error('Error downloading report:', error));
+}
+
+// ---- ELEMENT TOGGLE AND FOCUS----
+
+function togglePlaylistNameInput() {
+  const inputField = document.getElementById('playlist-name');
+  inputField.disabled = !inputField.disabled;
+}
+
+function focusPlaylistNameInput() {
+  const inputField = document.getElementById('playlist-name');
+  inputField.focus();
+}
+
+function toggleCreatePlaylistButton() {
+  // Check if the input is not empty to enable the button, else disable it
+  const playlistName = document.getElementById('playlist-name').value;
+  const button = document.getElementById('create-playlist-button');
+  button.disabled = !playlistName.trim(); // Disable button if input is empty or only whitespace
+}
+
+function toggleReturnButton(showButton) {
+  const returnButton = document.getElementById('libraryReturnButton');
+  const transferButton = document.getElementById('libraryTransferButton');
+  returnButton.style.display = showButton ? 'block' : 'none';
+  transferButton.style.display = showButton ? 'block' : 'none';
 }

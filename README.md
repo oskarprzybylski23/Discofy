@@ -2,12 +2,17 @@
   <img src="./App/static/favicon.ico" alt="Discofy Logo" width="100"/>
 </p>
 
-<h1 align="center">Discofy (WIP)</h1>
+<h1 align="center">Discofy</h1>
 
 <p align="center">
 Discofy is an application that allows users to create Spotify playlists based on their Discogs collections. This tool retrieves album information from a Discogs collection and creates a Spotify playlist containing tracks from those albums.
   <br>
-  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator"><strong>Explore the docs »</strong></a>
+  <br>
+  <strong>API libraries used:</strong>
+  <br>
+  <a href="https://python3-discogs-client.readthedocs.io/en/latest/index.html">View Python Discogs Client Documentation</a>
+  ·
+  <a href="https://spotipy.readthedocs.io/en/2.22.1/">View Spotipy Documentation</a>
   <br>
   <br>
   <a href="#">View Demo</a>
