@@ -40,6 +40,7 @@ def transfer_from_discogs():
 
         if result["albums"]["items"]:
             album = result["albums"]["items"][0]
+            # log for development only
             # print(json.dumps(album, indent=4))
 
             # placeholder for album data
@@ -56,10 +57,12 @@ def transfer_from_discogs():
             album_data["uri"] = album["uri"]
 
             playlist_data.append(album_data)
+            # log for development only
             print("Successfully transferred: " + album_data["title"] + " by " + album_data["artist"])
 
         else:
             failed_export.append({"artist": artist, "title": title})
+            # log for development only
             print("Failed to add: " + artist + " - " + title)
 
     export_playlist_to_json(playlist_data)
@@ -103,7 +106,6 @@ def create_playlist():
         for album in playlist_data:
                 album_id = album["uri"]
                 tracks = spotify.album_tracks(album_id)["items"]
-                print(json.dumps(tracks, indent = 2))
                 track_uris = [track["uri"] for track in tracks] #get album track uris
                 spotify.playlist_add_items(playlist["id"], track_uris)
 
@@ -112,6 +114,8 @@ def create_playlist():
                 track_uris_total.append(track_uris)
                 tracks_number = tracks_number + len(track_uris)
 
+                # log for debugging only
+                print(json.dumps(tracks, indent = 2))
         # info to be passed to UI later
         print(
             "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
@@ -125,7 +129,6 @@ def create_playlist():
     
 
 def export_playlist_to_json(playlist, filename="playlist_albums.json"):
-    print("creating playlist json")
     app_folder = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(app_folder, filename)
 
