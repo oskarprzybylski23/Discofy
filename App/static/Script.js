@@ -108,7 +108,7 @@ function checkAuthorizationStatus() {
 
 function getLibrary() {
   console.log(`Fetching folders`);
-
+  showSpinner('loading-spinner-discogs');
   fetch(`http://127.0.0.1:5000/get_library`)
     .then((response) => {
       if (!response.ok) {
@@ -118,6 +118,7 @@ function getLibrary() {
       return response.json();
     })
     .then((data) => {
+      hideSpinner('loading-spinner-discogs');
       displayLibrary(data); // Update the UI with the data
     })
     .catch((error) => {
@@ -127,7 +128,7 @@ function getLibrary() {
 
 function getCollection(folder) {
   console.log(`Fetching collection for folder ${folder}`);
-
+  showSpinner('loading-spinner-discogs');
   fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
     .then((response) => {
       if (!response.ok) {
@@ -137,6 +138,7 @@ function getCollection(folder) {
       return response.json();
     })
     .then((data) => {
+      hideSpinner('loading-spinner-discogs');
       displayCollection(data); // Update the UI with the data
     })
     .catch((error) => {
@@ -146,7 +148,7 @@ function getCollection(folder) {
 
 function transferCollectionToSpotify() {
   console.log(`Transfering to Spotify`);
-
+  showSpinner('loading-spinner-spotify');
   fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
     .then((response) => {
       if (!response.ok) {
@@ -166,6 +168,7 @@ function transferCollectionToSpotify() {
 
       focusPlaylistNameInput();
 
+      hideSpinner('loading-spinner-spotify');
       // Update the UI with the data
       displayPlaylist(data);
     })
@@ -237,7 +240,7 @@ function createPlaylist() {
       'Please enter a playlist name.';
     return;
   }
-
+  showSpinner('loading-spinner-spotify');
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
     headers: {
@@ -249,6 +252,8 @@ function createPlaylist() {
   })
     .then((response) => response.json())
     .then((data) => {
+      hideSpinner('loading-spinner-spotify');
+
       if (data.status === 'success') {
         console.log(data.message);
         // Update the UI to show success
@@ -304,6 +309,17 @@ function seeReport() {
 }
 
 // ---- ELEMENT TOGGLE AND FOCUS----
+
+function showSpinner(spinnerId) {
+  const spinner = document.getElementById(spinnerId);
+  if (spinner) spinner.style.display = 'block';
+}
+
+function hideSpinner(spinnerId) {
+  const spinner = document.getElementById(spinnerId);
+  if (spinner) spinner.style.display = 'none';
+}
+
 
 function togglePlaylistNameInput() {
   const inputField = document.getElementById('playlist-name');
