@@ -232,14 +232,16 @@ function getSpotifyAuthURLAndRedirect() {
 
 function createPlaylist() {
   playlistName = document.getElementById('playlist-name').value;
+  const feedbackElement = document.getElementById('feedback');
 
   // Check if the playlistName is empty
   if (!playlistName.trim()) {
     // Update the UI to show an error message
-    document.getElementById('feedback').innerText =
-      'Please enter a playlist name.';
+    feedbackElement.innerText = 'Please enter a playlist name.';
     return;
   }
+
+  feedbackElement.innerText = '';
   showSpinner('loading-spinner-spotify', 'Creating your playlist');
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
@@ -256,10 +258,17 @@ function createPlaylist() {
 
       if (data.status === 'success') {
         console.log(data.message);
-        // Update the UI to show success
+        feedbackElement.innerText = data.message;
+
+        // Display the playlist URL or redirect the user
+        const playlistLinkElement = document.createElement('a');
+        playlistLinkElement.href = data.url;
+        playlistLinkElement.innerText = 'Open in Spotify';
+        playlistLinkElement.target = '_blank';
+        feedbackElement.appendChild(playlistLinkElement);
       } else {
         console.error(data.message);
-        // Update the UI to show error
+        feedbackElement.innerText = data.message;
       }
     })
     .catch((error) => {

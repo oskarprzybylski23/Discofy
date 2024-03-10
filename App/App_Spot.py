@@ -121,7 +121,9 @@ def create_playlist(name):
             "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
         )
 
-        return True
+        playlist_url = playlist["external_urls"]["spotify"]
+        print(f"playlist url: {playlist_url}")
+        return playlist_url
     
     except Exception as e:
         print(f"Error creating playlist: {e}")

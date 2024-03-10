@@ -187,6 +187,14 @@ cursor: default;
 
 #feedback {
     color: var(--spotify-green);
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--spotify-green);
 }
 
 .spinner-container {

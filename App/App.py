@@ -65,9 +65,9 @@ def handle_transfer_to_spotify():
 def handle_create_playlist():
     data = request.get_json()
     playlist_name = data.get('name')
-    success = App_Spot.create_playlist(playlist_name)
-    if success:
-        return jsonify({"status": "success", "message": "Playlist created successfully."})
+    playlist_url = App_Spot.create_playlist(playlist_name)
+    if playlist_url:
+        return jsonify({"status": "success", "message": "Playlist created successfully.", "url": playlist_url})
     else:
         return jsonify({"status": "error", "message": "Failed to create playlist."}), 500
 
