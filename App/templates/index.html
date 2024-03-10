@@ -26,7 +26,11 @@
     </div>
     <div id="display-section">
       <div class="list-section" id="list-container-discogs">
-        <img src="../static/spinner.svg" class="spinner" id="loading-spinner-discogs" style="display: none;" alt="Loading...">
+        <div class="spinner-container" id="loading-spinner-discogs" style="display: none;">
+        <img src="../static/spinner.svg" class="spinner" id="loading-spinner-discogs" alt="Loading...">
+        <span id="spinner-text-discogs" class="spinner-text"></span>
+      </div>
+        
         <h2>Discogs Collection</h2>
         <ul class="collection-list" id="list-discogs"></ul>
         <button class="button" id="libraryReturnButton" onclick="returnToLibrary()">Return to Folder View</button> 
@@ -35,7 +39,10 @@
         <button class="button" id="libraryTransferButton" onclick="transferCollectionToSpotify()">Move to Spotify</button>
       </div>
       <div class="list-section" id="list-container-spotify">
-        <img src="../static/spinner.svg" class="spinner" id="loading-spinner-spotify" style="display: none;" alt="Loading...">
+        <div class="spinner-container" id="loading-spinner-spotify" style="display: none;">
+          <img src="../static/spinner.svg" class="spinner" id="loading-spinner-spotify" alt="Loading...">
+          <span id="spinner-text-spotify" class="spinner-text">Text</span>
+        </div>
         <h2>Spotify Playlist</h2>
         <ul class="collection-list" id="list-spotify"></ul>
         <input type="text" id="playlist-name" maxlength="100" placeholder="Enter your playlist name" oninput="toggleCreatePlaylistButton()" disabled>

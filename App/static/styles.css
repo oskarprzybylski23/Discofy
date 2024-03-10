@@ -189,13 +189,45 @@ cursor: default;
     color: var(--spotify-green);
 }
 
-.spinner {
+.spinner-container {
     position: absolute;
+    display: flex;
+    flex-direction: column;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    height: 50px;
+    text-align: center;
 }
+
+.spinner {
+    height: 50px;
+    margin-bottom: 10px;
+}
+
+.spinner-text {
+    color: var(--spotify-green);
+    font-size: 16px;
+  }
+
+.spinner-text::after {
+    content: "";
+    animation: dots 1.5s infinite step-start;
+  }
+
+  @keyframes dots {
+    0%, 20% {
+      content: "";
+    }
+    40% {
+      content: ".";
+    }
+    60% {
+      content: "..";
+    }
+    80%, 100% {
+      content: "...";
+    }
+  }
 
 /* SCROLLBAR */
 /* Width of the scrollbar */

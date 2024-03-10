@@ -108,7 +108,7 @@ function checkAuthorizationStatus() {
 
 function getLibrary() {
   console.log(`Fetching folders`);
-  showSpinner('loading-spinner-discogs');
+  showSpinner('loading-spinner-discogs', 'Fetching your library');
   fetch(`http://127.0.0.1:5000/get_library`)
     .then((response) => {
       if (!response.ok) {
@@ -128,7 +128,7 @@ function getLibrary() {
 
 function getCollection(folder) {
   console.log(`Fetching collection for folder ${folder}`);
-  showSpinner('loading-spinner-discogs');
+  showSpinner('loading-spinner-discogs', 'Fetching folder contents');
   fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
     .then((response) => {
       if (!response.ok) {
@@ -148,7 +148,7 @@ function getCollection(folder) {
 
 function transferCollectionToSpotify() {
   console.log(`Transfering to Spotify`);
-  showSpinner('loading-spinner-spotify');
+  showSpinner('loading-spinner-spotify', 'Searching Spotify');
   fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
     .then((response) => {
       if (!response.ok) {
@@ -240,7 +240,7 @@ function createPlaylist() {
       'Please enter a playlist name.';
     return;
   }
-  showSpinner('loading-spinner-spotify');
+  showSpinner('loading-spinner-spotify', 'Creating your playlist');
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
     headers: {
@@ -310,9 +310,13 @@ function seeReport() {
 
 // ---- ELEMENT TOGGLE AND FOCUS----
 
-function showSpinner(spinnerId) {
-  const spinner = document.getElementById(spinnerId);
-  if (spinner) spinner.style.display = 'block';
+function showSpinner(spinnerId, message) {
+  const spinnerContainer = document.getElementById(spinnerId);
+  if (spinnerContainer) {
+    const spinnerText = spinnerContainer.querySelector('.spinner-text');
+    spinnerText.innerText = message; // Set the action text
+    spinnerContainer.style.display = 'flex';
+  }
 }
 
 function hideSpinner(spinnerId) {
