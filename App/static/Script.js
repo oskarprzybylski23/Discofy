@@ -6,6 +6,7 @@ async function startImportProcess() {
 
   if (authorized) {
     console.log('Already authorized. Fetching collection.');
+    toggleLogoutButton();
     getLibrary(); // Directly fetch and display the collection
   } else {
     console.log('Not authorized. Opening authorization URL.');
@@ -100,6 +101,7 @@ function checkAuthorizationStatus() {
     console.log(`check authorization status: ${authorized}`);
 
     if (authorized) {
+      toggleLogoutButton();
       clearInterval(interval);
       getLibrary(); // Fetch the collection
     }
@@ -182,10 +184,10 @@ async function openAuthorizationUrl() {
   const data = await response.json();
 
   // Specify dimensions and features for the modal window
-  const width = 500; // Width of the window
-  const height = 600; // Height of the window
-  const left = (window.innerWidth - width) / 2; // Center the window horizontally
-  const top = (window.innerHeight - height) / 2; // Center the window vertically
+  const width = 500;
+  const height = 600;
+  const left = (window.innerWidth - width) / 2;
+  const top = (window.innerHeight - height) / 2;
 
   const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
 
@@ -197,6 +199,7 @@ function logoutUser() {
   fetch('/logout')
     .then((response) => {
       if (response.ok) {
+        toggleLogoutButton();
         console.log('User logged out');
       }
     })
@@ -266,6 +269,7 @@ function createPlaylist() {
         playlistLinkElement.innerText = 'Open in Spotify';
         playlistLinkElement.target = '_blank';
         feedbackElement.appendChild(playlistLinkElement);
+        toggleSaveReportButton();
       } else {
         console.error(data.message);
         feedbackElement.innerText = data.message;
@@ -333,7 +337,6 @@ function hideSpinner(spinnerId) {
   if (spinner) spinner.style.display = 'none';
 }
 
-
 function togglePlaylistNameInput() {
   const inputField = document.getElementById('playlist-name');
   inputField.disabled = !inputField.disabled;
@@ -352,8 +355,22 @@ function toggleCreatePlaylistButton() {
 }
 
 function toggleReturnButton(showButton) {
-  const returnButton = document.getElementById('libraryReturnButton');
-  const transferButton = document.getElementById('libraryTransferButton');
-  returnButton.style.display = showButton ? 'block' : 'none';
-  transferButton.style.display = showButton ? 'block' : 'none';
+  const button = document.getElementById('libraryReturnButton');
+  button.disabled = !button.disabled;
+  toggleTransferButton();
+}
+
+function toggleTransferButton(showButton) {
+  const button = document.getElementById('libraryTransferButton');
+  button.disabled = !button.disabled;
+}
+
+function toggleSaveReportButton(showButton) {
+  const button = document.getElementById('seeReportButton');
+  button.disabled = !button.disabled;
+}
+
+function toggleLogoutButton(showButton) {
+  const button = document.getElementById('logoutButton');
+  button.disabled = !button.disabled;
 }

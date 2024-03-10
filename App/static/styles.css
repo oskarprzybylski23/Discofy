@@ -68,12 +68,27 @@ input:disabled {
     color: var(--font-bright);
     border: none;
     border-radius: 500px;
-    padding: 10px 10px;
+    padding: 4px 12px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
+    min-height: 32px;
 }
 
-.button:hover {
+.button-round {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--mid-background);
+    color: var(--font-bright);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    height: 32px;
+    width: 32px;
+}
+
+.button:hover, .button-round:hover {
     background-color: var(--light-background); 
 }
 
@@ -81,7 +96,7 @@ input:disabled {
     background-color: var(--mid-background);
 }
 
-.button:disabled {
+.button:disabled, .button-round:disabled {
     background-color: var(--mid-background);
     opacity: 50%;
     color: var(--font-dark);
@@ -93,6 +108,22 @@ input:disabled {
     flex-direction: row;
     justify-content: space-around;
     margin-top: 20px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensures the button and the placeholder div push the title to the center */
+    text-align: center;
+}
+
+.header-container h2 {
+    flex-grow: 1; /* Allows the title to take up as much space as possible, centering it */
+    margin: 0; /* Adjust as necessary */
+}
+
+.header-container > div {
+    flex-grow: 1; /* Matches the button's space on the opposite side to maintain center alignment */
 }
 
 .list-section {
@@ -165,10 +196,6 @@ cursor: default;
     font-size: 0.8rem;
 }
 
-#libraryReturnButton, #libraryTransferButton {
-    display: none;
-}
-
 #libraryTransferButton {
     height: 50px;
 }
@@ -178,6 +205,10 @@ cursor: default;
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+
+#libraryReturnButton {
+    align-self: left;
 }
 
 .album-cover {
