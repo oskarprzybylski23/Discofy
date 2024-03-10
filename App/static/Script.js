@@ -150,6 +150,7 @@ function getCollection(folder) {
 
 function transferCollectionToSpotify() {
   console.log(`Transfering to Spotify`);
+  const feedbackElement = document.getElementById('feedback');
   showSpinner('loading-spinner-spotify', 'Searching Spotify');
   fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
     .then((response) => {
@@ -176,22 +177,26 @@ function transferCollectionToSpotify() {
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
+      hideSpinner('loading-spinner-spotify');
+      feedbackElement.innerText =
+        'Error: Spotify - Your token may have expired. Try logging in to Spotify again.';
     });
 }
 
 async function openAuthorizationUrl() {
   const response = await fetch('/authorize_discogs', { method: 'POST' });
   const data = await response.json();
+  const authUrl = data.authorize_url;
 
   // Specify dimensions and features for the modal window
-  const width = 500;
+  const width = 800;
   const height = 600;
-  const left = (window.innerWidth - width) / 2;
-  const top = (window.innerHeight - height) / 2;
+  const left = (window.outerWidth - width) / 2 + window.screenX;
+  const top = (window.outerHeight - height) / 2 + window.screenY;
 
   const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
 
-  window.open(data.authorize_url, 'authWindow', features); // Open the URL in a new tab or window
+  window.open(authUrl, 'authWindow', features); // Open the URL in a new tab or window
 }
 
 // Clear user tokens
@@ -228,7 +233,13 @@ function getSpotifyAuthURLAndRedirect() {
     .then((data) => {
       const authUrl = data.auth_url;
       // Open the URL in a new window
-      window.open(authUrl, 'SpotifyLoginWindow', 'width=800,height=600');
+      const width = 800;
+      const height = 600;
+      const left = (window.outerWidth - width) / 2 + window.screenX;
+      const top = (window.outerHeight - height) / 2 + window.screenY;
+
+      const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
+      window.open(authUrl, 'SpotifyLoginWindow', features);
     })
     .catch((error) => console.error('Error fetching Spotify auth URL:', error));
 }

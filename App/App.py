@@ -210,7 +210,7 @@ def spotify_callback():
     token_info = response.json()
     session['tokens'] = token_info  # Store token info in the session
     # print(session['tokens'])
-    return 'Login successful!'
+    return render_template('close_window.html')
 
 @app.route('/logout')
 def logout():

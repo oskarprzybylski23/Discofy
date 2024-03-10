@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spotify Authentication Successful</title>
+    <script type="text/javascript">
+        window.onload = function() {
+            // Check if the window can be closed
+            if (window.opener) {
+                window.close();
+            } else {
+                // If the window was not opened via window.open, redirect or show a message
+                window.location.href = '/'; // Redirect to home or another appropriate page
+            }
+        };
+    </script>
+</head>
+<body>
+    <p>Authentication successful. You can close this window.</p>
+</body>
+</html>
