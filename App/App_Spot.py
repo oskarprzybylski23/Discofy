@@ -37,6 +37,7 @@ def transfer_from_discogs():
         artist = release['artist']
         title = release['title']
         result = spotify.search(q=f"artist:{artist} album:{title}", type="album")
+        discogs_id = release['discogs_id']
 
         if result["albums"]["items"]:
             album = result["albums"]["items"][0]
@@ -55,6 +56,7 @@ def transfer_from_discogs():
             # for later use
             album_data["id"] = album["id"]
             album_data["uri"] = album["uri"]
+            album_data["discogs_id"] = discogs_id
 
             playlist_data.append(album_data)
             # log for development only
