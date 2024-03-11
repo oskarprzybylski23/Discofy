@@ -8,6 +8,7 @@
     --highlight: #787878;
     --font-bright: #ffffff;
     --font-dark: #b3b3b3;
+    --red-highlight: #cd4e4e ;
     /* Fonts */
     --font-main: 'Montserrat', sans-serif;
   }
@@ -195,6 +196,14 @@ cursor: default;
     color: var(--font-dark);
     font-size: 0.8rem;
 }
+
+.not-found-highlight {
+  background-color: var(--red-highlight);
+}
+
+.not-found-highlight:hover {
+    background-color: #d23b3b;
+  }
 
 #libraryTransferButton {
     height: 50px;

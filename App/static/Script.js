@@ -76,19 +76,30 @@ function displayPlaylist(data) {
   const template = document.getElementById('albumTemplate');
 
   data.forEach((album, index) => {
-    const clone = document.importNode(template.content, true);
+    if (album.found) {
+      const clone = document.importNode(template.content, true);
 
-    // Now you can find and populate the specific parts of the template
-    clone.querySelector('.album-index').textContent = `${index + 1}`;
-    clone.querySelector('.album-artist').textContent = album.artist;
-    clone.querySelector('.album-title').textContent = album.title;
-    clone.querySelector('.album-cover').setAttribute('src', album.image);
+      // Now you can find and populate the specific parts of the template
+      clone.querySelector('.album-index').textContent = `${index + 1}`;
+      clone.querySelector('.album-artist').textContent = album.artist;
+      clone.querySelector('.album-title').textContent = album.title;
+      clone.querySelector('.album-cover').setAttribute('src', album.image);
 
-    // Set the ID on the <li> for reference
-    const listItem = clone.querySelector('li');
-    listItem.id = `${album.discogs_id}`;
+      // Set the ID on the <li> for reference
+      const listItem = clone.querySelector('li');
+      listItem.id = `${album.discogs_id}`;
 
-    PlaylistList.appendChild(clone);
+      PlaylistList.appendChild(clone);
+    } else {
+      const albumElementInLibrary = document.querySelector(
+        `#list-discogs li[id="${album.discogs_id}"] .album`
+      );
+
+      if (albumElementInLibrary) {
+        // Add a class to highlight the album, ensure you define this class in your CSS
+        albumElementInLibrary.classList.add('not-found-highlight');
+      }
+    }
   });
 }
 

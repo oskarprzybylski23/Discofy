@@ -58,7 +58,7 @@ def handle_transfer_to_spotify():
         output = App_Spot.transfer_from_discogs()
         return jsonify(output)
     except Exception as e:
-        print(f"Error during collection import: {e}")
+        print(f"Error during collection transfer: {e}")
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 @app.route('/create_playlist', methods=['POST'])

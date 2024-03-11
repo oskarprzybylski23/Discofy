@@ -27,57 +27,52 @@ def transfer_from_discogs():
 
     # Playlist info
     collection_data = read_collection_data("./App/collection_export.json")
-    playlist_data = []
-
-    # Create placeholders for statistics
-    failed_export = []
-    
+    export_data = []
     # Find and add tracks to the playlist
     for release in collection_data:
         artist = release['artist']
         title = release['title']
         result = spotify.search(q=f"artist:{artist} album:{title}", type="album")
         discogs_id = release['discogs_id']
-
+        
         if result["albums"]["items"]:
-            album = result["albums"]["items"][0]
             # log for development only
             # print(json.dumps(album, indent=4))
+            album = result["albums"]["items"][0]    
+            album_data = {
+            "artist": album["artists"][0]["name"],
+            "title": album["name"],
+            "image": album["images"][0]["url"],  # Make sure to check the correct index for the desired image size
+            "url": album["external_urls"]["spotify"],
+            "id": album["id"],
+            "uri": album["uri"],
+            "discogs_id": discogs_id,
+            "found": True,
+            }
 
-            # placeholder for album data
-            album_data = {}
-            
-            #for display
-            album_data["artist"] = album["artists"][0]["name"]
-            album_data["title"] = album["name"]
-            album_data["image"] = album["images"][2]["url"]
-            album_data["url"] = album["external_urls"]["spotify"]
-
-            # for later use
-            album_data["id"] = album["id"]
-            album_data["uri"] = album["uri"]
-            album_data["discogs_id"] = discogs_id
-
-            playlist_data.append(album_data)
+            export_data.append(album_data)
             # log for development only
             print("Successfully transferred: " + album_data["title"] + " by " + album_data["artist"])
 
         else:
-            failed_export.append({"artist": artist, "title": title})
+
+            album_data = {
+            "artist": artist,
+            "title": title,
+            "discogs_id": discogs_id,
+            "found": False
+            }
+
+            export_data.append(album_data)
             # log for development only
             print("Failed to add: " + artist + " - " + title)
 
-    export_playlist_to_json(playlist_data)
+    save_export_data_to_json(export_data)
 
-    # info to be passed to UI later
-    print(f"failed to find: {json.dumps(failed_export, indent=2)}")
     # log for debugging only
-    print(
-            "\n" + f"{len(playlist_data)} albums transferred."
-        )
-    print(json.dumps(playlist_data, indent=2))
+    print(json.dumps(export_data, indent=2))
 
-    return playlist_data
+    return export_data
 
 
 def create_playlist(name):
@@ -90,7 +85,7 @@ def create_playlist(name):
     spotify = spotipy.Spotify(auth=token)
 
     # Playlist info
-    playlist_data = read_playlist_data("./App/playlist_albums.json")
+    playlist_data = read_playlist_data("./App/export_albums.json")
     playlist_name = name
     playlist_description = "This is a playlist created from Discogs collection using Discofy"
 
@@ -132,7 +127,7 @@ def create_playlist(name):
         return False
     
 
-def export_playlist_to_json(playlist, filename="playlist_albums.json"):
+def save_export_data_to_json(playlist, filename="export_data.json"):
     app_folder = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(app_folder, filename)
 
