@@ -33,16 +33,21 @@ def initialize_discogs_client():
         secret=access_token_secret,
     )
 
-    return d
-
-def import_library():
-    print("Fetching library")
-    d = initialize_discogs_client()
     if d is None:
         print("Failed to initialize Discogs client.")
         return
 
     me = d.identity()
+
+    return me
+
+def import_library():
+    print("Fetching library")
+    me = initialize_discogs_client()
+
+    username = me.username
+    user_url = me.url
+    print(me.url)
     folders = me.collection_folders
     
     library = []
@@ -57,12 +62,8 @@ def import_library():
 def import_collection(folder_id=0):
 
     print("importing collection") 
-    d = initialize_discogs_client()
-    if d is None:
-        print("Failed to initialize Discogs client.")
-        return
 
-    me = d.identity()
+    me = initialize_discogs_client()
 
     print('user authorized:' + str(me))
 
@@ -79,7 +80,7 @@ def import_collection(folder_id=0):
     export_to_json(collection)
     export_to_csv(collection)
 
-    return collection
+    return collection   
 
 def export_to_json(collection, filename="collection_export.json"):
     print("creating json")
