@@ -163,6 +163,7 @@ function transferCollectionToSpotify() {
   console.log(`Transfering to Spotify`);
   const feedbackElement = document.getElementById('feedback');
   showSpinner('loading-spinner-spotify', 'Searching Spotify');
+  toggleTransferButton();
   fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
     .then((response) => {
       if (!response.ok) {
@@ -185,8 +186,10 @@ function transferCollectionToSpotify() {
       hideSpinner('loading-spinner-spotify');
       // Update the UI with the data
       displayPlaylist(data);
+      toggleTransferButton();
     })
     .catch((error) => {
+      toggleTransferButton();
       console.error('Fetch error:', error.message);
       hideSpinner('loading-spinner-spotify');
       feedbackElement.innerText =
@@ -275,6 +278,9 @@ function createPlaylist() {
     return;
   }
 
+  togglePlaylistNameInput();
+  toggleCreatePlaylistButton();
+
   feedbackElement.innerText = '';
   showSpinner('loading-spinner-spotify', 'Creating your playlist');
   fetch('/create_playlist', {
@@ -301,9 +307,13 @@ function createPlaylist() {
         playlistLinkElement.target = '_blank';
         feedbackElement.appendChild(playlistLinkElement);
         toggleSaveReportButton();
+        togglePlaylistNameInput();
+        toggleCreatePlaylistButton();
       } else {
         console.error(data.message);
         feedbackElement.innerText = data.message;
+        togglePlaylistNameInput();
+        toggleCreatePlaylistButton();
       }
     })
     .catch((error) => {
@@ -411,11 +421,17 @@ function focusPlaylistNameInput() {
   inputField.focus();
 }
 
-function toggleCreatePlaylistButton() {
+function toggleCreatePlaylistButtonOnInput() {
   // Check if the input is not empty to enable the button, else disable it
   const playlistName = document.getElementById('playlist-name').value;
   const button = document.getElementById('create-playlist-button');
   button.disabled = !playlistName.trim(); // Disable button if input is empty or only whitespace
+}
+
+function toggleCreatePlaylistButton() {
+  // Check if the input is not empty to enable the button, else disable it
+  const button = document.getElementById('create-playlist-button');
+  button.disabled = !button.disabled;
 }
 
 function toggleReturnButton(showButton) {
