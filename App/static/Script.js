@@ -192,8 +192,7 @@ function transferCollectionToSpotify() {
       toggleTransferButton();
       console.error('Fetch error:', error.message);
       hideSpinner('loading-spinner-spotify');
-      feedbackElement.innerText =
-        'Error: Spotify - Your token may have expired. Try logging in to Spotify again.';
+      feedbackElement.innerText = 'Error: Spotify - Log in first.';
     });
 }
 

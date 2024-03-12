@@ -135,7 +135,7 @@ def create_report(albums_data, number_of_tracks, name_of_playlist, playlist_url)
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Format: Year-Month-Day Hour:Minute:Second
     app_name = "Discofy"
-    github_link = "https://github.com/yourusername/discofy"  # Replace with your actual GitHub repo URL
+    github_link = "https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator"
 
     with open('export_report.txt', 'w') as f:
         # Header with general information
