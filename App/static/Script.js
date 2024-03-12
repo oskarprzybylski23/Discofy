@@ -6,7 +6,7 @@ async function startImportProcess() {
 
   if (authorized) {
     console.log('Already authorized. Fetching collection.');
-    toggleLogoutButton();
+    enableLogoutButton();
     getLibrary(); // Directly fetch and display the collection
   } else {
     console.log('Not authorized. Opening authorization URL.');
@@ -112,7 +112,7 @@ function checkAuthorizationStatus() {
     console.log(`check authorization status: ${authorized}`);
 
     if (authorized) {
-      toggleLogoutButton();
+      enableLogoutButton();
       clearInterval(interval);
       getLibrary(); // Fetch the collection
     }
@@ -210,13 +210,14 @@ async function openAuthorizationUrl() {
   window.open(authUrl, 'authWindow', features); // Open the URL in a new tab or window
 }
 
-// Clear user tokens
+// Clear user tokens and enable login button
 function logoutUser() {
   fetch('/logout')
     .then((response) => {
       if (response.ok) {
-        toggleLogoutButton();
+        disableLogoutButton();
         console.log('User logged out');
+        check_spotify_authorization();
       }
     })
     .catch((error) => console.error('Error logging out:', error));
@@ -251,6 +252,14 @@ function getSpotifyAuthURLAndRedirect() {
 
       const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
       window.open(authUrl, 'SpotifyLoginWindow', features);
+
+      // Poll to check if the window is closed
+      const pollTimer = window.setInterval(function () {
+        if (spotifyLoginWindow.closed !== false) {
+          window.clearInterval(pollTimer);
+          checkSpotifyAuthorizationAndUpdateButton(); // Check authorization status after login window is closed
+        }
+      }, 200);
     })
     .catch((error) => console.error('Error fetching Spotify auth URL:', error));
 }
@@ -343,6 +352,39 @@ function seeReport() {
     .catch((error) => console.error('Error downloading report:', error));
 }
 
+// Function to check Spotify authorization status
+function checkSpotifyAuthorizationStatus() {
+  fetch('/check_spotify_authorization')
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.authorized) {
+        toggleSpotifyLoginButton(data.authorized);
+        enableLogoutButton();
+      } else {
+        disableLogoutButton();
+      }
+    })
+    .catch((error) =>
+      console.error('Error checking Spotify auth status:', error)
+    );
+}
+
+// Function to toggle the Spotify login button based on authorization status
+function toggleSpotifyLoginButton(isAuthorized) {
+  const spotifyLoginButton = document.getElementById('spotifyLoginButton');
+  if (isAuthorized) {
+    spotifyLoginButton.disabled = true; // Disable the button if already authorized
+    spotifyLoginButton.innerText = 'Spotify Authorized'; // Optional: Update the button text
+  } else {
+    spotifyLoginButton.disabled = false;
+    spotifyLoginButton.innerText = 'Login with Spotify'; // Reset button text if needed
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  checkSpotifyAuthorizationStatus();
+});
+
 // ---- ELEMENT TOGGLE AND FOCUS----
 
 function showSpinner(spinnerId, message) {
@@ -392,7 +434,12 @@ function toggleSaveReportButton(showButton) {
   button.disabled = !button.disabled;
 }
 
-function toggleLogoutButton(showButton) {
+function disableLogoutButton(showButton) {
   const button = document.getElementById('logoutButton');
-  button.disabled = !button.disabled;
+  button.disabled = true;
+}
+
+function enableLogoutButton(showButton) {
+  const button = document.getElementById('logoutButton');
+  button.disabled = false;
 }

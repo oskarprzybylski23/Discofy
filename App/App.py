@@ -238,6 +238,15 @@ def spotify_callback():
     session['tokens'] = token_info  # Store token info in the session
     return render_template('close_window.html')
 
+@app.route('/check_spotify_authorization', methods=['GET'])
+def check_spotify_authorization():
+    # Check if token information is present and if the access token is still valid
+    if 'tokens' in session and session['tokens'].get('expires_at', 0) > time.time():
+        return jsonify({'authorized': True})
+    else:
+        # If the token is expired or not present, consider the user not authorized
+        return jsonify({'authorized': False})
+
 @app.route('/logout')
 def logout():
     # Clear the stored access token and secret from the session
