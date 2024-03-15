@@ -17,6 +17,7 @@ async function startImportProcess() {
 
 function returnToLibrary() {
   toggleReturnButton(false);
+  toggleTransferButton();
   getLibrary();
 }
 
@@ -66,6 +67,7 @@ function displayCollection(data) {
     albumList.appendChild(clone);
   });
   toggleReturnButton(true);
+  toggleTransferButton();
 }
 
 function displayPlaylist(data) {
@@ -257,13 +259,18 @@ function getSpotifyAuthURLAndRedirect() {
       const top = (window.outerHeight - height) / 2 + window.screenY;
 
       const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
-      window.open(authUrl, 'SpotifyLoginWindow', features);
+      const spotifyAuthWindow = window.open(
+        authUrl,
+        'SpotifyLoginWindow',
+        features
+      );
 
       // Poll to check if the window is closed
       const pollTimer = window.setInterval(function () {
-        if (spotifyLoginWindow.closed !== false) {
+        if (spotifyAuthWindow.closed !== false) {
+          console.log('window closed');
           window.clearInterval(pollTimer);
-          checkSpotifyAuthorizationAndUpdateButton(); // Check authorization status after login window is closed
+          checkSpotifyAuthorizationStatus(); // Check authorization status after login window is closed
         }
       }, 200);
     })
@@ -367,11 +374,12 @@ function seeReport() {
 
 // Function to check Spotify authorization status
 function checkSpotifyAuthorizationStatus() {
+  console.log('checking spotify authorization');
   fetch('/check_spotify_authorization')
     .then((response) => response.json())
     .then((data) => {
+      toggleSpotifyLoginButton(data.authorized);
       if (data.authorized) {
-        toggleSpotifyLoginButton(data.authorized);
         enableLogoutButton();
       } else {
         disableLogoutButton();
@@ -387,10 +395,8 @@ function toggleSpotifyLoginButton(isAuthorized) {
   const spotifyLoginButton = document.getElementById('spotifyLoginButton');
   if (isAuthorized) {
     spotifyLoginButton.disabled = true; // Disable the button if already authorized
-    spotifyLoginButton.innerText = 'Spotify Authorized'; // Optional: Update the button text
   } else {
     spotifyLoginButton.disabled = false;
-    spotifyLoginButton.innerText = 'Login with Spotify'; // Reset button text if needed
   }
 }
 
@@ -440,12 +446,15 @@ function toggleCreatePlaylistButton() {
 function toggleReturnButton(showButton) {
   const button = document.getElementById('libraryReturnButton');
   button.disabled = !button.disabled;
-  toggleTransferButton();
 }
 
 function toggleTransferButton(showButton) {
+  console.log('toggling transfer button');
+  const spotifyLoginButton = document.getElementById('spotifyLoginButton');
   const button = document.getElementById('libraryTransferButton');
-  button.disabled = !button.disabled;
+  if ((spotifyLoginButton.disabled = true)) {
+    button.disabled = !button.disabled;
+  }
 }
 
 function toggleSaveReportButton(showButton) {
@@ -454,11 +463,13 @@ function toggleSaveReportButton(showButton) {
 }
 
 function disableLogoutButton(showButton) {
+  console.log('disabling logout');
   const button = document.getElementById('logoutButton');
   button.disabled = true;
 }
 
 function enableLogoutButton(showButton) {
+  console.log('enabling logout');
   const button = document.getElementById('logoutButton');
   button.disabled = false;
 }
