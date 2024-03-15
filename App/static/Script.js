@@ -123,6 +123,8 @@ function checkAuthorizationStatus() {
 
 function getLibrary() {
   console.log(`Fetching folders`);
+  const feedbackElement = document.getElementById('feedback');
+  feedbackElement.innerText = '';
   showSpinner('loading-spinner-discogs', 'Fetching your library');
   fetch(`http://127.0.0.1:5000/get_library`)
     .then((response) => {
@@ -142,11 +144,15 @@ function getLibrary() {
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
+      hideSpinner('loading-spinner-discogs');
+      feedbackElement.innerText = 'Error: Discogs - Log in first.';
     });
 }
 
 function getCollection(folder) {
   console.log(`Fetching collection for folder ${folder}`);
+  const feedbackElement = document.getElementById('feedback');
+  feedbackElement.innerText = '';
   showSpinner('loading-spinner-discogs', 'Fetching folder contents');
   fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
     .then((response) => {
@@ -162,12 +168,15 @@ function getCollection(folder) {
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
+      hideSpinner('loading-spinner-discogs');
+      feedbackElement.innerText = 'Error: Discogs - Log in first.';
     });
 }
 
 function transferCollectionToSpotify() {
   console.log(`Transfering to Spotify`);
   const feedbackElement = document.getElementById('feedback');
+  feedbackElement.innerText = '';
   showSpinner('loading-spinner-spotify', 'Searching Spotify');
   toggleTransferButton();
   fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
@@ -280,7 +289,7 @@ function getSpotifyAuthURLAndRedirect() {
 function createPlaylist() {
   playlistName = document.getElementById('playlist-name').value;
   const feedbackElement = document.getElementById('feedback');
-
+  feedbackElement.innerText = '';
   // Check if the playlistName is empty
   if (!playlistName.trim()) {
     // Update the UI to show an error message
@@ -291,7 +300,6 @@ function createPlaylist() {
   togglePlaylistNameInput();
   toggleCreatePlaylistButton();
 
-  feedbackElement.innerText = '';
   showSpinner('loading-spinner-spotify', 'Creating your playlist');
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
