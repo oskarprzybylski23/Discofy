@@ -234,15 +234,29 @@ function logoutUser() {
       if (response.ok) {
         console.log('User logged out');
         disableLogoutButton();
+        toggleReturnButton();
+        toggleTransferButton();
         checkSpotifyAuthorizationStatus();
 
         // clear discogs user info
         const userInfo = document.getElementById('user-info-discogs');
         userInfo.querySelector('a').textContent = '';
         userInfo.querySelector('a').href = '';
+
+        // Clear library and playlist list
+        clearLibraryAndPlaylistLists();
       }
     })
     .catch((error) => console.error('Error logging out:', error));
+}
+
+function clearLibraryAndPlaylistLists() {
+  const libraryList = document.getElementById('list-discogs');
+  const playlistList = document.getElementById('list-spotify');
+
+  // Clear the content of the library and playlist lists
+  libraryList.innerHTML = '';
+  playlistList.innerHTML = '';
 }
 
 window.addEventListener(
