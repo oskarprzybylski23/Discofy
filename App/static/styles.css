@@ -127,6 +127,10 @@ input:disabled {
     flex-grow: 1; /* Matches the button's space on the opposite side to maintain center alignment */
 }
 
+.user-info {
+    text-align: left;
+}
+
 .list-section {
     margin-top: 20px;
     width: 500px;

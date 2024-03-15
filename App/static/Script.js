@@ -132,7 +132,11 @@ function getLibrary() {
     })
     .then((data) => {
       hideSpinner('loading-spinner-discogs');
-      displayLibrary(data); // Update the UI with the data
+      const userInfo = document.getElementById('user-info-discogs');
+      userInfo.display = 'block';
+      userInfo.querySelector('a').textContent = data.user_info.username;
+      userInfo.querySelector('a').href = data.user_info.url;
+      displayLibrary(data.library); // Update the UI with the data
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
@@ -219,7 +223,7 @@ function logoutUser() {
       if (response.ok) {
         disableLogoutButton();
         console.log('User logged out');
-        check_spotify_authorization();
+        checkSpotifyAuthorizationStatus();
       }
     })
     .catch((error) => console.error('Error logging out:', error));

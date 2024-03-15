@@ -57,7 +57,15 @@ def import_library():
         library.append(folder_item)
         # print(folder.releases)
 
-    return library
+    response = {
+        'user_info': {
+            'username': username,
+            'url': user_url
+        },
+        'library': library
+    }
+    
+    return response
 
 def import_collection(folder_id=0):
 
