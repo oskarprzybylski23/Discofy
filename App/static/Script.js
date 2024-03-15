@@ -16,8 +16,8 @@ async function startImportProcess() {
 }
 
 function returnToLibrary() {
-  toggleReturnButton(false);
-  toggleTransferButton();
+  disableReturnButton();
+  disableTransferButton();
   getLibrary();
 }
 
@@ -66,8 +66,8 @@ function displayCollection(data) {
 
     albumList.appendChild(clone);
   });
-  toggleReturnButton(true);
-  toggleTransferButton();
+  enableReturnButton();
+  enableTransferButton();
 }
 
 function displayPlaylist(data) {
@@ -178,7 +178,7 @@ function transferCollectionToSpotify() {
   const feedbackElement = document.getElementById('feedback');
   feedbackElement.innerText = '';
   showSpinner('loading-spinner-spotify', 'Searching Spotify');
-  toggleTransferButton();
+  disableTransferButton();
   fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
     .then((response) => {
       if (!response.ok) {
@@ -201,10 +201,10 @@ function transferCollectionToSpotify() {
       hideSpinner('loading-spinner-spotify');
       // Update the UI with the data
       displayPlaylist(data);
-      toggleTransferButton();
+      enableTransferButton();
     })
     .catch((error) => {
-      toggleTransferButton();
+      disableTransferButton();
       console.error('Fetch error:', error.message);
       hideSpinner('loading-spinner-spotify');
       feedbackElement.innerText = 'Error: Spotify - Log in first.';
@@ -234,8 +234,8 @@ function logoutUser() {
       if (response.ok) {
         console.log('User logged out');
         disableLogoutButton();
-        toggleReturnButton();
-        toggleTransferButton();
+        disableReturnButton();
+        disableTransferButton();
         checkSpotifyAuthorizationStatus();
 
         // clear discogs user info
@@ -376,7 +376,6 @@ function seeReport() {
         }
         return; // Stop processing further since there was an error
       }
-      // Assume the response is a blob
       return response.blob();
     })
     .then((blob) => {
@@ -408,9 +407,14 @@ function checkSpotifyAuthorizationStatus() {
       toggleSpotifyLoginButton(data.authorized);
       const userInfo = document.getElementById('user-info-spotify');
       if (data.authorized) {
-        enableLogoutButton();
         userInfo.querySelector('a').innerText = data.username;
         userInfo.querySelector('a').href = data.url;
+
+        if (document.getElementById('libraryReturnButton').disabled != false) {
+          enableTransferButton();
+        }
+
+        enableLogoutButton();
       } else {
         disableLogoutButton();
         userInfo.querySelector('a').innerText = '';
@@ -475,12 +479,17 @@ function toggleCreatePlaylistButton() {
   button.disabled = !button.disabled;
 }
 
-function toggleReturnButton(showButton) {
+function enableReturnButton() {
   const button = document.getElementById('libraryReturnButton');
-  button.disabled = !button.disabled;
+  button.disabled = true;
 }
 
-function toggleTransferButton(showButton) {
+function disableReturnButton() {
+  const button = document.getElementById('libraryReturnButton');
+  button.disabled = false;
+}
+
+function toggleTransferButton() {
   console.log('toggling transfer button');
   const spotifyLoginButton = document.getElementById('spotifyLoginButton');
   const button = document.getElementById('libraryTransferButton');
@@ -489,19 +498,34 @@ function toggleTransferButton(showButton) {
   }
 }
 
-function toggleSaveReportButton(showButton) {
+function toggleSaveReportButton() {
   const button = document.getElementById('seeReportButton');
   button.disabled = !button.disabled;
 }
 
-function disableLogoutButton(showButton) {
-  console.log('disabling logout');
-  const button = document.getElementById('logoutButton');
+function enableTransferButton() {
+  console.log('enabling transfer button');
+  const spotifyLoginButton = document.getElementById('spotifyLoginButton');
+  const button = document.getElementById('libraryTransferButton');
+  if (spotifyLoginButton.disabled == true) {
+    button.disabled = false;
+  }
+}
+
+function disableTransferButton() {
+  console.log('enabling transfer button');
+  const button = document.getElementById('libraryTransferButton');
   button.disabled = true;
 }
 
-function enableLogoutButton(showButton) {
+function enableLogoutButton() {
   console.log('enabling logout');
   const button = document.getElementById('logoutButton');
   button.disabled = false;
+}
+
+function disableLogoutButton() {
+  console.log('disabling logout');
+  const button = document.getElementById('logoutButton');
+  button.disabled = true;
 }
