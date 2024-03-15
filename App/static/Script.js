@@ -232,9 +232,14 @@ function logoutUser() {
   fetch('/logout')
     .then((response) => {
       if (response.ok) {
-        disableLogoutButton();
         console.log('User logged out');
+        disableLogoutButton();
         checkSpotifyAuthorizationStatus();
+
+        // clear discogs user info
+        const userInfo = document.getElementById('user-info-discogs');
+        userInfo.querySelector('a').textContent = '';
+        userInfo.querySelector('a').href = '';
       }
     })
     .catch((error) => console.error('Error logging out:', error));
@@ -387,10 +392,15 @@ function checkSpotifyAuthorizationStatus() {
     .then((response) => response.json())
     .then((data) => {
       toggleSpotifyLoginButton(data.authorized);
+      const userInfo = document.getElementById('user-info-spotify');
       if (data.authorized) {
         enableLogoutButton();
+        userInfo.querySelector('a').innerText = data.username;
+        userInfo.querySelector('a').href = data.url;
       } else {
         disableLogoutButton();
+        userInfo.querySelector('a').innerText = '';
+        userInfo.querySelector('a').href = '';
       }
     })
     .catch((error) =>

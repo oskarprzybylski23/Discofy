@@ -8,6 +8,7 @@ import os
 from flask import session
 from pathlib import Path
 from threading import Thread
+import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
 
@@ -242,7 +243,14 @@ def spotify_callback():
 def check_spotify_authorization():
     # Check if token information is present and if the access token is still valid
     if 'tokens' in session and session['tokens'].get('expires_at', 0) > time.time():
-        return jsonify({'authorized': True})
+
+        # Extract the username (Spotify user ID) from the user profile
+        spotify = spotipy.Spotify(auth=session['tokens']['access_token'])
+        user_profile = spotify.current_user()
+        username = user_profile['id']
+        user_url = user_profile['external_urls']['spotify']
+
+        return jsonify({'authorized': True, 'username': username, 'url': user_url})
     else:
         # If the token is expired or not present, consider the user not authorized
         return jsonify({'authorized': False})
