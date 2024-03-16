@@ -484,12 +484,12 @@ function toggleCreatePlaylistButton() {
 
 function enableReturnButton() {
   const button = document.getElementById('libraryReturnButton');
-  button.disabled = true;
+  button.disabled = false;
 }
 
 function disableReturnButton() {
   const button = document.getElementById('libraryReturnButton');
-  button.disabled = false;
+  button.disabled = true;
 }
 
 function toggleTransferButton() {
