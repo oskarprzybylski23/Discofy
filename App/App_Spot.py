@@ -27,7 +27,7 @@ def transfer_from_discogs():
     spotify = spotipy.Spotify(auth=token)
 
     # Playlist info
-    collection_data = read_collection_data("./App/collection_export.json")
+    collection_data = read_collection_data("./App/import_data.json")
     export_data = []
     # Find and add tracks to the playlist
     for release in collection_data:
