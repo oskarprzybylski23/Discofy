@@ -129,6 +129,7 @@ input:disabled {
 
 .user-info {
     text-align: left;
+    visibility: hidden;
 }
 
 .list-section {

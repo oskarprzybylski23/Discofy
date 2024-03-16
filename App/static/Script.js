@@ -136,8 +136,8 @@ function getLibrary() {
     })
     .then((data) => {
       hideSpinner('loading-spinner-discogs');
-      const userInfo = document.getElementById('user-info-discogs');
-      userInfo.display = 'block';
+      const userInfo = document.querySelector('.user-info.discogs');
+      userInfo.style.visibility = 'visible';
       userInfo.querySelector('a').textContent = data.user_info.username;
       userInfo.querySelector('a').href = data.user_info.url;
       displayLibrary(data.library); // Update the UI with the data
@@ -239,9 +239,10 @@ function logoutUser() {
         checkSpotifyAuthorizationStatus();
 
         // clear discogs user info
-        const userInfo = document.getElementById('user-info-discogs');
+        const userInfo = document.querySelector('.user-info');
         userInfo.querySelector('a').textContent = '';
         userInfo.querySelector('a').href = '';
+        userInfo.style.visibility = 'hidden';
 
         // Clear library and playlist list
         clearLibraryAndPlaylistLists();
@@ -405,10 +406,11 @@ function checkSpotifyAuthorizationStatus() {
     .then((response) => response.json())
     .then((data) => {
       toggleSpotifyLoginButton(data.authorized);
-      const userInfo = document.getElementById('user-info-spotify');
+      const userInfo = document.querySelector('.user-info.spotify');
       if (data.authorized) {
         userInfo.querySelector('a').innerText = data.username;
         userInfo.querySelector('a').href = data.url;
+        userInfo.style.visibility = 'visible';
 
         if (document.getElementById('libraryReturnButton').disabled != false) {
           enableTransferButton();
@@ -419,6 +421,7 @@ function checkSpotifyAuthorizationStatus() {
         disableLogoutButton();
         userInfo.querySelector('a').innerText = '';
         userInfo.querySelector('a').href = '';
+        userInfo.style.visibility = 'hidden';
       }
     })
     .catch((error) =>
