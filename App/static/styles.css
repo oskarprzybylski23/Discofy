@@ -5,10 +5,12 @@
     --background: #121212;
     --mid-background: #212121;
     --light-background: #535353;
-    --highlight: #787878;
+    --highlight-bright: #787878;
+    --higlight-dark: #121212;
     --font-bright: #ffffff;
     --font-dark: #b3b3b3;
-    --red-highlight: #cd4e4e ;
+    --failed: #cd4e4e ;
+    --failed-highlight: #d23b3b ;
     /* Fonts */
     --font-main: 'Montserrat', sans-serif;
   }
@@ -167,12 +169,12 @@ input:disabled {
 }
 
 .album:hover {
-background-color: var(--background);
+background-color: var(--higlight-dark);
 cursor: default;
 }
 
 .folder:hover {
-    background-color: var(--background);
+    background-color: var(--higlight-dark);
     cursor: pointer;
 }
 
@@ -203,11 +205,11 @@ cursor: default;
 }
 
 .not-found-highlight {
-  background-color: var(--red-highlight);
+  background-color: var(--failed);
 }
 
 .not-found-highlight:hover {
-    background-color: #d23b3b;
+    background-color: var(--failed-highlight);
   }
 
 #libraryTransferButton {
@@ -300,5 +302,5 @@ a {
   
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--highlight);
+    background: var(--highlight-bright);
   }
