@@ -412,7 +412,7 @@ function checkSpotifyAuthorizationStatus() {
         userInfo.querySelector('a').href = data.url;
         userInfo.style.visibility = 'visible';
 
-        if (document.getElementById('libraryReturnButton').disabled != false) {
+        if (document.getElementById('libraryReturnButton').disabled != true) {
           enableTransferButton();
         }
 
