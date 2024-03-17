@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv
 from flask import session
 import os
+from datetime import datetime   
 
 load_dotenv()
 
@@ -26,56 +27,53 @@ def transfer_from_discogs():
     spotify = spotipy.Spotify(auth=token)
 
     # Playlist info
-    collection_data = read_collection_data("./App/collection_export.json")
-    playlist_data = []
-
-    # Create placeholders for statistics
-    failed_export = []
-    
+    collection_data = read_collection_data("./App/import_data.json")
+    export_data = []
     # Find and add tracks to the playlist
     for release in collection_data:
         artist = release['artist']
         title = release['title']
         result = spotify.search(q=f"artist:{artist} album:{title}", type="album")
-
+        discogs_id = release['discogs_id']
+        
         if result["albums"]["items"]:
-            album = result["albums"]["items"][0]
             # log for development only
             # print(json.dumps(album, indent=4))
+            album = result["albums"]["items"][0]    
+            album_data = {
+            "artist": album["artists"][0]["name"],
+            "title": album["name"],
+            "image": album["images"][0]["url"],  # Make sure to check the correct index for the desired image size
+            "url": album["external_urls"]["spotify"],
+            "id": album["id"],
+            "uri": album["uri"],
+            "discogs_id": discogs_id,
+            "found": True,
+            }
 
-            # placeholder for album data
-            album_data = {}
-            
-            #for display
-            album_data["artist"] = album["artists"][0]["name"]
-            album_data["title"] = album["name"]
-            album_data["image"] = album["images"][2]["url"]
-            album_data["url"] = album["external_urls"]["spotify"]
-
-            # for later use
-            album_data["id"] = album["id"]
-            album_data["uri"] = album["uri"]
-
-            playlist_data.append(album_data)
+            export_data.append(album_data)
             # log for development only
             print("Successfully transferred: " + album_data["title"] + " by " + album_data["artist"])
 
         else:
-            failed_export.append({"artist": artist, "title": title})
+
+            album_data = {
+            "artist": artist,
+            "title": title,
+            "discogs_id": discogs_id,
+            "found": False
+            }
+
+            export_data.append(album_data)
             # log for development only
             print("Failed to add: " + artist + " - " + title)
 
-    export_playlist_to_json(playlist_data)
+    save_export_data_to_json(export_data)
 
-    # info to be passed to UI later
-    print(f"failed to find: {json.dumps(failed_export, indent=2)}")
     # log for debugging only
-    print(
-            "\n" + f"{len(playlist_data)} albums transferred."
-        )
-    print(json.dumps(playlist_data, indent=2))
+    print(json.dumps(export_data, indent=2))
 
-    return playlist_data
+    return export_data
 
 
 def create_playlist(name):
@@ -88,7 +86,7 @@ def create_playlist(name):
     spotify = spotipy.Spotify(auth=token)
 
     # Playlist info
-    playlist_data = read_playlist_data("./App/playlist_albums.json")
+    playlist_data = read_playlist_data("./App/export_data.json")
     playlist_name = name
     playlist_description = "This is a playlist created from Discogs collection using Discofy"
 
@@ -97,57 +95,80 @@ def create_playlist(name):
             spotify.current_user()["id"], name=playlist_name, public=True, description=playlist_description
         )
 
-        # Create placeholders for statistics
-        albums_total = []
-        track_uris_total = []
+        # Create placeholder for statistics
         tracks_number = 0
 
         # Find and add tracks to the playlist
         for album in playlist_data:
-                album_id = album["uri"]
-                tracks = spotify.album_tracks(album_id)["items"]
-                track_uris = [track["uri"] for track in tracks] #get album track uris
-                spotify.playlist_add_items(playlist["id"], track_uris)
+                if album["found"]:
+                    album_id = album["uri"]
+                    tracks = spotify.album_tracks(album_id)["items"]
+                    track_uris = [track["uri"] for track in tracks] #get album track uris
+                    spotify.playlist_add_items(playlist["id"], track_uris)
 
-                # statistics
-                albums_total.append(album_id)
-                track_uris_total.append(track_uris)
-                tracks_number = tracks_number + len(track_uris)
+                    # statistics
+                    tracks_number = tracks_number + len(tracks)
 
                 # log for debugging only
-                print(json.dumps(tracks, indent = 2))
-        # info to be passed to UI later
-        print(
-            "\n" + f"{tracks_number} tracks from {len(albums_total)} albums added to playlist '{playlist_name}'."
-        )
+                # print(json.dumps(tracks, indent = 2))
 
-        return True
+        playlist_url = playlist["external_urls"]["spotify"]
+        create_report(playlist_data, tracks_number, playlist_name, playlist_url)
+
+        return playlist_url
     
     except Exception as e:
         print(f"Error creating playlist: {e}")
         return False
     
 
-def export_playlist_to_json(playlist, filename="playlist_albums.json"):
+def save_export_data_to_json(playlist, filename="export_data.json"):
     app_folder = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(app_folder, filename)
 
     with open(filepath, 'w') as json_file:
         json.dump(playlist, json_file, indent=2)
 
-def create_report(failed_items, number_of_tracks, number_of_albums, name_of_playlist):
+def create_report(albums_data, number_of_tracks, name_of_playlist, playlist_url):
+    successful_items = [album for album in albums_data if album['found']]
+    failed_items = [album for album in albums_data if not album['found']]
+
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Format: Year-Month-Day Hour:Minute:Second
+    app_name = "Discofy"
+    github_link = "https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator"
+
     with open('export_report.txt', 'w') as f:
+        # Header with general information
         f.write(
-            f"\n{number_of_tracks} tracks from {len(number_of_albums)} albums added to playlist '{name_of_playlist}'." + "\n\n"
+            f"Export Report - {app_name}\n"
+            f"Export Time: {current_time}\n"
+            f"Link to Playlist: {playlist_url}\n"
+            f"\n{number_of_tracks} tracks from {len(successful_items)} albums added to playlist '{name_of_playlist}'" + "\n\n"
         )
 
-        if len(failed_items) > 0:
-            f.write(f"{len(failed_items)} Following albums failed to export or could not be found:" + "\n")
+        # Section for successfully added albums
+        if successful_items:
+            f.write(f"Albums exported successfully:\n")
+            for item in successful_items:
+                    f.write(f"\n{item['artist']} - {item['title']}")
 
+        # Spacer between sections
+        f.write("\n\n")
+
+        # Section for albums that failed to export
+        if failed_items:
+            f.write(f"{len(failed_items)} albums failed to export or could not be found:\n")
             for item in failed_items:
-                f.write("\n" + item[0] + "- " + item[1])
+                f.write(f"\n{item['artist']} - {item['title']}")
+
+            # Spacer between sections
+            f.write("\n\n")
 
             f.write(
-                "\n" + "Album load may have failed due to incorrect album/artist name. In that case, you can try "
-                       "manually changing names of the albums/artists in discogs_collection.csv file and trying again."
+                "Album export may have failed due to album not being available in Spotify or artist/album name not matching between the platforms. You can try manually searching for these albums in the Spotify catalog,"
             )
+        
+        f.write(
+            f"Thank you for using Discofy, if you want to explore the project, contribute or raise an issue: please visit the project repository: {github_link}\n\n"
+        )
+        

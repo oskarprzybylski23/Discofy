@@ -5,9 +5,12 @@
     --background: #121212;
     --mid-background: #212121;
     --light-background: #535353;
-    --highlight: #787878;
+    --highlight-bright: #787878;
+    --higlight-dark: #121212;
     --font-bright: #ffffff;
     --font-dark: #b3b3b3;
+    --failed: #cd4e4e ;
+    --failed-highlight: #d23b3b ;
     /* Fonts */
     --font-main: 'Montserrat', sans-serif;
   }
@@ -68,12 +71,27 @@ input:disabled {
     color: var(--font-bright);
     border: none;
     border-radius: 500px;
-    padding: 10px 10px;
+    padding: 4px 12px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
+    min-height: 32px;
 }
 
-.button:hover {
+.button-round {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--mid-background);
+    color: var(--font-bright);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    height: 32px;
+    width: 32px;
+}
+
+.button:hover, .button-round:hover {
     background-color: var(--light-background); 
 }
 
@@ -81,7 +99,7 @@ input:disabled {
     background-color: var(--mid-background);
 }
 
-.button:disabled {
+.button:disabled, .button-round:disabled {
     background-color: var(--mid-background);
     opacity: 50%;
     color: var(--font-dark);
@@ -95,10 +113,32 @@ input:disabled {
     margin-top: 20px;
 }
 
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensures the button and the placeholder div push the title to the center */
+    text-align: center;
+}
+
+.header-container h2 {
+    flex-grow: 1; /* Allows the title to take up as much space as possible, centering it */
+    margin: 0; /* Adjust as necessary */
+}
+
+.header-container > div {
+    flex-grow: 1; /* Matches the button's space on the opposite side to maintain center alignment */
+}
+
+.user-info {
+    text-align: left;
+    visibility: hidden;
+}
+
 .list-section {
     margin-top: 20px;
     width: 500px;
     height: fit-content;
+    position: relative;
 }
 
 .collection-list {
@@ -128,9 +168,14 @@ input:disabled {
     color: var(--font-bright);
 }
 
-.album:hover, .folder:hover {
-background-color: var(--background);
-cursor: pointer;
+.album:hover {
+background-color: var(--higlight-dark);
+cursor: default;
+}
+
+.folder:hover {
+    background-color: var(--higlight-dark);
+    cursor: pointer;
 }
 
 .album-index, .folder-index {
@@ -159,9 +204,13 @@ cursor: pointer;
     font-size: 0.8rem;
 }
 
-#libraryReturnButton, #libraryTransferButton {
-    display: none;
+.not-found-highlight {
+  background-color: var(--failed);
 }
+
+.not-found-highlight:hover {
+    background-color: var(--failed-highlight);
+  }
 
 #libraryTransferButton {
     height: 50px;
@@ -174,14 +223,74 @@ cursor: pointer;
     justify-content: center;
 }
 
+#libraryReturnButton {
+    align-self: left;
+}
+
 .album-cover {
     height: 40px;
     border-radius: 5px;
 }
 
+#feedback-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 #feedback {
     color: var(--spotify-green);
+    display: flex;
+    flex-direction: column;
+    margin-top: 50px;
+    width: 80%;
 }
+
+a {
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--spotify-green);
+}
+
+.spinner-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.spinner {
+    height: 50px;
+    margin-bottom: 10px;
+}
+
+.spinner-text {
+    color: var(--spotify-green);
+    font-size: 16px;
+  }
+
+.spinner-text::after {
+    content: "";
+    animation: dots 1.5s infinite step-start;
+  }
+
+  @keyframes dots {
+    0%, 20% {
+      content: "";
+    }
+    40% {
+      content: ".";
+    }
+    60% {
+      content: "..";
+    }
+    80%, 100% {
+      content: "...";
+    }
+  }
 
 /* SCROLLBAR */
 /* Width of the scrollbar */
@@ -201,5 +310,5 @@ cursor: pointer;
   
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--highlight);
+    background: var(--highlight-bright);
   }

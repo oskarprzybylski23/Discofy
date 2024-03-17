@@ -8,11 +8,13 @@ import os
 from flask import session
 from pathlib import Path
 from threading import Thread
+import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+import time
 
 app = Flask(__name__)
 
-app.secret_key = 'your_secret_key'  # Set this to a random secret value
+app.secret_key = os.environ.get('APP_SECRET_KEY')
 
 load_dotenv()
 
@@ -21,8 +23,8 @@ client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
 
-consumer_key = os.getenv('discogs_consumer_key')
-consumer_secret = os.getenv('discogs_consumer_secret')
+consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
+consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
 
 # Spotify OAuth URLs
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
@@ -54,20 +56,22 @@ def get_collection():
 
 @app.route('/transfer_to_spotify', methods=['GET'])
 def handle_transfer_to_spotify():
+    check_access_token_expiry()
     try:
         output = App_Spot.transfer_from_discogs()
         return jsonify(output)
     except Exception as e:
-        print(f"Error during collection import: {e}")
+        print(f"Error during collection transfer: {e}")
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 @app.route('/create_playlist', methods=['POST'])
 def handle_create_playlist():
+    check_access_token_expiry()
     data = request.get_json()
     playlist_name = data.get('name')
-    success = App_Spot.create_playlist(playlist_name)
-    if success:
-        return jsonify({"status": "success", "message": "Playlist created successfully."})
+    playlist_url = App_Spot.create_playlist(playlist_name)
+    if playlist_url:
+        return jsonify({"status": "success", "message": "Playlist created successfully.", "url": playlist_url})
     else:
         return jsonify({"status": "error", "message": "Failed to create playlist."}), 500
 
@@ -181,9 +185,32 @@ def exchange_code_for_token(auth_code):
         cache_path=".token_cache"
     )
     token_info = oauth_object.get_access_token(code=auth_code)
-    # print(token_info)
-    return token_info  # This includes the access token
+    return token_info
 
+def check_access_token_expiry():
+    if 'tokens' not in session:
+        return  # Token not in session, handle to enable login
+    current_time = int(time.time())
+    if session['tokens']['expires_at'] - current_time < 60:  # Check if the token expires in the next 60 seconds
+        print("Access token is expiring soon or already expired. Refreshing...")
+        refresh_access_token()
+
+def refresh_access_token():
+    oauth_object = SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri=redirect_uri,
+        scope=scope,
+        cache_path=".token_cache"
+    )
+
+    # Refreshing the token
+    token_info = oauth_object.refresh_access_token(session['tokens']['refresh_token'])
+
+    # Update the session with the new token
+    session['tokens'] = token_info
+
+    return token_info
 
 @app.route('/login')
 def login():
@@ -208,9 +235,25 @@ def spotify_callback():
 
     response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
     token_info = response.json()
+    token_info['expires_at'] = int(time.time()) + token_info['expires_in']
     session['tokens'] = token_info  # Store token info in the session
-    # print(session['tokens'])
-    return 'Login successful!'
+    return render_template('close_window.html')
+
+@app.route('/check_spotify_authorization', methods=['GET'])
+def check_spotify_authorization():
+    # Check if token information is present and if the access token is still valid
+    if 'tokens' in session and session['tokens'].get('expires_at', 0) > time.time():
+
+        # Extract the username (Spotify user ID) from the user profile
+        spotify = spotipy.Spotify(auth=session['tokens']['access_token'])
+        user_profile = spotify.current_user()
+        username = user_profile['id']
+        user_url = user_profile['external_urls']['spotify']
+
+        return jsonify({'authorized': True, 'username': username, 'url': user_url})
+    else:
+        # If the token is expired or not present, consider the user not authorized
+        return jsonify({'authorized': False})
 
 @app.route('/logout')
 def logout():

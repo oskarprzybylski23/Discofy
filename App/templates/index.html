@@ -19,24 +19,42 @@
     </header>
     <main>
     <div id="button-section">
-      <button class="button" onclick="startImportProcess()">Import Collection</button>
-      <button class="button" onclick="getSpotifyAuthURLAndRedirect()">Connect Spotify</button>
-      <button class="button" onclick="seeReport()">See Report</button>
-      <button class="button" onclick="logoutUser()">Logout</button>
+      <button class="button" onclick="startImportProcess()">Import from Discogs</button>
+      <button class="button" id="spotifyLoginButton" onclick="getSpotifyAuthURLAndRedirect()">Login to Spotify</button>
+      <button class="button" id="seeReportButton" onclick="seeReport()" disabled>Save Report</button>
+      <button class="button" id="logoutButton" onclick="logoutUser()" disabled>Logout</button>
     </div>
     <div id="display-section">
       <div class="list-section" id="list-container-discogs">
+        <div class="spinner-container" id="loading-spinner-discogs" style="display: none;">
+        <img src="../static/spinner.svg" class="spinner" id="loading-spinner-discogs" alt="Loading...">
+        <span id="spinner-text-discogs" class="spinner-text"></span>
+      </div>
+      <div class="header-container">
+        <button class="button-round" id="libraryReturnButton" onclick="returnToLibrary()" disabled>
+          <svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
         <h2>Discogs Collection</h2>
+      </div>
+        <p class="user-info discogs" id="user-info-discogs">Logged in: <a href="" target="_blank"></a></p>
         <ul class="collection-list" id="list-discogs"></ul>
-        <button class="button" id="libraryReturnButton" onclick="returnToLibrary()">Return to Folder View</button> 
       </div>
       <div id="transfer-button-container">
-        <button class="button" id="libraryTransferButton" onclick="transferCollectionToSpotify()">Move to Spotify</button>
+        <button class="button" id="libraryTransferButton" onclick="transferCollectionToSpotify()" disabled>Move to Spotify</button>
       </div>
       <div class="list-section" id="list-container-spotify">
+        <div class="spinner-container" id="loading-spinner-spotify" style="display: none;">
+          <img src="../static/spinner.svg" class="spinner" id="loading-spinner-spotify" alt="Loading...">
+          <span id="spinner-text-spotify" class="spinner-text">Text</span>
+        </div>
+        <div class="header-container">
         <h2>Spotify Playlist</h2>
+        </div>
+        <p class="user-info spotify" id="user-info-spotify">Logged in: <a href="" target="_blank"></a></p>
         <ul class="collection-list" id="list-spotify"></ul>
-        <input type="text" id="playlist-name" maxlength="100" placeholder="Enter your playlist name" oninput="toggleCreatePlaylistButton()" disabled>
+        <input type="text" id="playlist-name" maxlength="100" placeholder="Enter your playlist name" oninput="toggleCreatePlaylistButtonOnInput()" disabled>
         <button class="button" id="create-playlist-button" onclick="createPlaylist()" disabled>Create Playlist</button>
       </div>
     </div>
