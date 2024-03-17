@@ -103,8 +103,6 @@ def handle_create_playlist():
     data = request.get_json()
     playlist_name = data.get('name')
     sanitized_name = clean(playlist_name, tags=[], attributes={}, strip=True)
-    print(playlist_name)
-    print(sanitized_name)
     playlist_url = App_Spot.create_playlist(sanitized_name)
     if playlist_url:
         return jsonify({"status": "success", "message": "Playlist created successfully.", "url": playlist_url})
