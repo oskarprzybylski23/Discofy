@@ -11,15 +11,16 @@ from threading import Thread
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
+from flask_sslify import SSLify
 
 load_dotenv()
 
 app = Flask(__name__)
+sslify = SSLify(app)
 
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookies.
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookies to first-party or same-site context.
-app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=30) 
 
 # Flask app environment variables
 app.secret_key = os.environ.get('APP_SECRET_KEY')
