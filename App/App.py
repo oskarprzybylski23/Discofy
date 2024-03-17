@@ -12,17 +12,25 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
 
-app = Flask(__name__)
-
-app.secret_key = os.environ.get('APP_SECRET_KEY')
-
 load_dotenv()
 
-scope = 'playlist-modify-public'
+app = Flask(__name__)
+
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookies.
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookies to first-party or same-site context.
+app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(minutes=30) 
+
+# Flask app environment variables
+app.secret_key = os.environ.get('APP_SECRET_KEY')
+
+# Spotify environment variables
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
+scope = 'playlist-modify-public'
 
+# Discogs environment variables
 consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
 consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
 
