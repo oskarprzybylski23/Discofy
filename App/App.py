@@ -12,11 +12,36 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
 from flask_sslify import SSLify
+from flask_talisman import Talisman
 
 load_dotenv()
 
 app = Flask(__name__)
 sslify = SSLify(app)
+
+csp = {
+    'default-src': '\'self\'',
+    'style-src': [
+        '\'self\'',
+        'https://fonts.googleapis.com',
+        '\'unsafe-inline\'',  # Allows inline styles
+    ],
+    'font-src': [
+        '\'self\'',
+        'https://fonts.gstatic.com',
+    ],
+    'img-src': [
+        '\'self\'',
+        'https://i.discogs.com',
+        'https://i.scdn.co'
+    ],
+    'script-src': [
+        '\'self\'',
+        '\'unsafe-inline\'',  # Caution: Allows all inline scripts, use with care
+    ],
+}
+
+talisman = Talisman(app, content_security_policy=csp)
 
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookies.
