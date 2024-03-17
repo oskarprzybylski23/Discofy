@@ -14,7 +14,7 @@ import time
 
 app = Flask(__name__)
 
-app.secret_key = 'your_secret_key'  # Set this to a random secret value
+app.secret_key = os.environ.get('APP_SECRET_KEY')
 
 load_dotenv()
 
@@ -23,8 +23,8 @@ client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
 
-consumer_key = os.getenv('discogs_consumer_key')
-consumer_secret = os.getenv('discogs_consumer_secret')
+consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
+consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
 
 # Spotify OAuth URLs
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"

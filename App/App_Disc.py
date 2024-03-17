@@ -7,8 +7,8 @@ from flask import session
 
 load_dotenv()
 
-consumer_key = os.getenv('discogs_consumer_key')
-consumer_secret = os.getenv('discogs_consumer_secret')
+consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
+consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
 
 def retrieve_tokens():
     access_token = session.get('access_token')
@@ -81,8 +81,9 @@ def import_collection(folder_id=0):
     selected_folder = me.collection_folders[folder_id]
 
     for index, item in enumerate(selected_folder.releases, start=1):
+
         release = {'index': index, 'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,
-                   'year': item.release.fetch('year'), 'discogs_id': item.release.fetch('id'), 'cover': item.release.fetch('thumb')}
+                   'year': item.release.fetch('year'), 'discogs_id': item.release.fetch('id'), 'cover': item.release.fetch('thumb'), 'url': item.release.fetch('uri')}
         collection.append(release)
 
     export_to_json(collection)
