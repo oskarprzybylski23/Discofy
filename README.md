@@ -55,8 +55,9 @@ pip install -r requirements.txt
 SPOTIPY_CLIENT_ID= `your_spotify_client_id`
 SPOTIPY_CLIENT_SECRET= `your_spotify_client_secret`
 SPOTIPY_CLIENT_URI= `your_spotify_redirect_uri`
-discogs_consumer_key=`your_discogs_consumer_key`
-discogs_consumer_secret=`your_discogs_consumer_secret`
+DISCOGS_CONSUMER_KEY=`your_discogs_consumer_key`
+DISCOGS_CONSUMER_SECRET=`your_discogs_consumer_secret`
+APP_SECRET_KEY = `your_app_secret`
 ```
 
 5. start virtualenv
