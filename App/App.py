@@ -6,13 +6,12 @@ import App_Spot
 from dotenv import load_dotenv
 import os
 from flask import session
-from pathlib import Path
-from threading import Thread
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
 from flask_sslify import SSLify
 from flask_talisman import Talisman
+from bleach import clean
 
 load_dotenv()
 
@@ -103,7 +102,10 @@ def handle_create_playlist():
     check_access_token_expiry()
     data = request.get_json()
     playlist_name = data.get('name')
-    playlist_url = App_Spot.create_playlist(playlist_name)
+    sanitized_name = clean(playlist_name, tags=[], attributes={}, strip=True)
+    print(playlist_name)
+    print(sanitized_name)
+    playlist_url = App_Spot.create_playlist(sanitized_name)
     if playlist_url:
         return jsonify({"status": "success", "message": "Playlist created successfully.", "url": playlist_url})
     else:
