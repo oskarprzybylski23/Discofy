@@ -54,7 +54,6 @@ function displayCollection(data) {
   data.forEach((album, index) => {
     const clone = document.importNode(template.content, true);
 
-    // Now you can find and populate the specific parts of the template
     clone.querySelector('.album-index').textContent = `${index + 1}`;
     clone.querySelector('.album-artist').textContent = album.artist;
     clone.querySelector('.album-title').textContent = album.title;
@@ -80,7 +79,6 @@ function displayPlaylist(data) {
   data.forEach((album, index) => {
     if (album.found) {
       const clone = document.importNode(template.content, true);
-
       // Now you can find and populate the specific parts of the template
       clone.querySelector('.album-index').textContent = `${index + 1}`;
       clone.querySelector('.album-artist').textContent = album.artist;
@@ -194,6 +192,8 @@ function transferCollectionToSpotify() {
 
       if (!hasListItems) {
         togglePlaylistNameInput();
+        feedbackElement.innerText =
+          'Discogs folder contents were converted to Spotify list successfully. You can see any albums that could not be found highlighted in red in the Discogs window. ';
       }
 
       focusPlaylistNameInput();
