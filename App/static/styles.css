@@ -232,10 +232,18 @@ cursor: default;
     border-radius: 5px;
 }
 
+#feedback-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 #feedback {
     color: var(--spotify-green);
     display: flex;
     flex-direction: column;
+    margin-top: 50px;
+    width: 80%;
 }
 
 a {
