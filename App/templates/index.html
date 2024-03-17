@@ -19,10 +19,10 @@
     </header>
     <main>
     <div id="button-section">
-      <button class="button" onclick="startImportProcess()">Import from Discogs</button>
-      <button class="button" id="spotifyLoginButton" onclick="getSpotifyAuthURLAndRedirect()">Login to Spotify</button>
-      <button class="button" id="seeReportButton" onclick="seeReport()" disabled>Save Report</button>
-      <button class="button" id="logoutButton" onclick="logoutUser()" disabled>Logout</button>
+      <button class="button" id="discogsImportButton">Import from Discogs</button>
+      <button class="button" id="spotifyLoginButton">Login to Spotify</button>
+      <button class="button" id="seeReportButton" disabled>Save Report</button>
+      <button class="button" id="logoutButton" disabled>Logout</button>
     </div>
     <div id="display-section">
       <div class="list-section" id="list-container-discogs">
@@ -31,7 +31,7 @@
         <span id="spinner-text-discogs" class="spinner-text"></span>
       </div>
       <div class="header-container">
-        <button class="button-round" id="libraryReturnButton" onclick="returnToLibrary()" disabled>
+        <button class="button-round" id="libraryReturnButton" disabled>
           <svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -42,7 +42,7 @@
         <ul class="collection-list" id="list-discogs"></ul>
       </div>
       <div id="transfer-button-container">
-        <button class="button" id="libraryTransferButton" onclick="transferCollectionToSpotify()" disabled>Move to Spotify</button>
+        <button class="button" id="libraryTransferButton" disabled>Move to Spotify</button>
       </div>
       <div class="list-section" id="list-container-spotify">
         <div class="spinner-container" id="loading-spinner-spotify" style="display: none;">
@@ -55,7 +55,7 @@
         <p class="user-info spotify" id="user-info-spotify">Logged in: <a href="" target="_blank"></a></p>
         <ul class="collection-list" id="list-spotify"></ul>
         <input type="text" id="playlist-name" maxlength="100" placeholder="Enter your playlist name" oninput="toggleCreatePlaylistButtonOnInput()" disabled>
-        <button class="button" id="create-playlist-button" onclick="createPlaylist()" disabled>Create Playlist</button>
+        <button class="button" id="create-playlist-button" disabled>Create Playlist</button>
       </div>
     </div>
     <div id="feedback-section">

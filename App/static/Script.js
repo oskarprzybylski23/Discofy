@@ -439,9 +439,35 @@ function toggleSpotifyLoginButton(isAuthorized) {
   }
 }
 
+// Document Event Listeners
+
 document.addEventListener('DOMContentLoaded', () => {
-  checkSpotifyAuthorizationStatus();
+  checkSpotifyAuthorizationStatus;
 });
+
+document
+  .getElementById('discogsImportButton')
+  .addEventListener('click', startImportProcess);
+
+document
+  .getElementById('spotifyLoginButton')
+  .addEventListener('click', getSpotifyAuthURLAndRedirect);
+
+document.getElementById('seeReportButton').addEventListener('click', seeReport);
+
+document.getElementById('logoutButton').addEventListener('click', logoutUser);
+
+document
+  .getElementById('libraryReturnButton')
+  .addEventListener('click', returnToLibrary);
+
+document
+  .getElementById('libraryTransferButton')
+  .addEventListener('click', transferCollectionToSpotify);
+
+document
+  .getElementById('create-playlist-button')
+  .addEventListener('click', createPlaylist);
 
 // ---- ELEMENT TOGGLE AND FOCUS----
 
