@@ -14,95 +14,21 @@ async function startImportProcess() {
   }
 }
 
-// Navigate back to library view
-function returnToLibrary() {
-  disableReturnButton();
-  disableTransferButton();
-  getLibrary();
-}
+// Open modal authorization winwdow for Discogs
+async function openAuthorizationUrl() {
+  const response = await fetch('/authorize_discogs', { method: 'POST' });
+  const data = await response.json();
+  const authUrl = data.authorize_url;
 
-// Present fetched Discogs library to the user
-function displayLibrary(data) {
-  const libraryList = document.getElementById('list-discogs');
-  libraryList.innerHTML = ''; // Clear previous data
-  const template = document.getElementById('folderTemplate');
+  // Specify dimensions and features for the modal window
+  const width = 800;
+  const height = 600;
+  const left = (window.outerWidth - width) / 2 + window.screenX;
+  const top = (window.outerHeight - height) / 2 + window.screenY;
 
-  data.forEach((folder, index) => {
-    const clone = document.importNode(template.content, true);
-    
-    clone.querySelector('.folder-index').textContent = `${index + 1}`;
-    clone.querySelector('.folder-name').textContent = folder.folder;
-    clone.querySelector('.folder-count').textContent = folder.count;
+  const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
 
-    // Set the ID on the <li> for reference
-    const listItem = clone.querySelector('li');
-    listItem.id = `folder-${index}`;
-
-    // Add click event listener to library folder
-    listItem.addEventListener('click', () => getCollection(index));
-
-    libraryList.appendChild(clone);
-  });
-}
-
-// Present contents of selected Discogs library folder to the user
-function displayCollection(data) {
-  const albumList = document.getElementById('list-discogs');
-  albumList.innerHTML = ''; // Clear previous data
-  const template = document.getElementById('albumTemplate');
-
-  data.forEach((album, index) => {
-    const clone = document.importNode(template.content, true);
-
-    clone.querySelector('.album-index').textContent = `${index + 1}`;
-    clone.querySelector('.album-artist').textContent = album.artist;
-    clone.querySelector('.album-title').textContent = album.title;
-    clone.querySelector('.album-cover').setAttribute('src', album.cover);
-
-    // Set the ID on the <li> for reference
-    const listItem = clone.querySelector('li');
-    listItem.id = `${album.discogs_id}`;
-
-    albumList.appendChild(clone);
-  });
-
-  enableReturnButton();
-  enableTransferButton();
-}
-
-// Present the results of searching collection contents on Spotify to the user
-function displayPlaylist(data) {
-  // Change later to rember data so no repeat fetch is required if library is to be displayed again.
-  const PlaylistList = document.getElementById('list-spotify');
-  PlaylistList.innerHTML = ''; // Clear previous data
-
-  const template = document.getElementById('albumTemplate');
-
-  data.forEach((album, index) => {
-    if (album.found) {
-      const clone = document.importNode(template.content, true);
-      // Now you can find and populate the specific parts of the template
-      clone.querySelector('.album-index').textContent = `${index + 1}`;
-      clone.querySelector('.album-artist').textContent = album.artist;
-      clone.querySelector('.album-title').textContent = album.title;
-      clone.querySelector('.album-cover').setAttribute('src', album.image);
-
-      // Set the ID on the <li> for reference
-      const listItem = clone.querySelector('li');
-      listItem.id = `${album.discogs_id}`;
-
-      PlaylistList.appendChild(clone);
-    } else {
-      const albumElementInLibrary = document.querySelector(
-        `#list-discogs li[id="${album.discogs_id}"] .album`
-      );
-
-      // Communicate items that were not found in Spotify catalog by highlighting respective items in the Discogs field
-      if (albumElementInLibrary) {
-        albumElementInLibrary.classList.add('not-found-highlight');
-      }
-    }
-  });
+  window.open(authUrl, 'authWindow', features);
 }
 
 function checkAuthorizationStatus() {
@@ -117,6 +43,13 @@ function checkAuthorizationStatus() {
       getLibrary(); // Fetch the Discogs library
     }
   }, 5000);
+}
+
+// Navigate back to library view
+function returnToLibrary() {
+  disableReturnButton();
+  disableTransferButton();
+  getLibrary();
 }
 
 // Fetch user library folders data from Discogs
@@ -173,95 +106,54 @@ function getCollection(folder) {
     });
 }
 
-// Looking up Discogs collection items in Spotify catalog
-function transferCollectionToSpotify() {
-  const feedbackElement = document.getElementById('feedback');
-  feedbackElement.innerText = '';
-  showSpinner('loading-spinner-spotify', 'Searching Spotify');
-  disableTransferButton();
-  
-  fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
-    .then((response) => {
-      if (!response.ok) {
-        // If server response is not ok, throw an error with the status
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      // Enable and/or focus input element
-      const listSpotify = document.getElementById('list-spotify'); //Check if there is already a playlist loaded to avoid disabling input
-      const hasListItems = listSpotify.children.length > 0;
-
-      if (!hasListItems) {
-        togglePlaylistNameInput();
-        feedbackElement.innerText =
-          'Discogs folder contents were converted to Spotify list successfully. You can see any albums that could not be found highlighted in red in the Discogs window. ';
-      }
-
-      focusPlaylistNameInput();
-
-      hideSpinner('loading-spinner-spotify');
-      displayPlaylist(data); // Update UI with the data
-      enableTransferButton();
-    })
-    .catch((error) => {
-      disableTransferButton();
-      console.error('Fetch error:', error.message);
-      hideSpinner('loading-spinner-spotify');
-      feedbackElement.innerText = 'Error: Spotify - Log in first.';
-    });
-}
-
-// Open modal authorization winwdow for Discogs
-async function openAuthorizationUrl() {
-  const response = await fetch('/authorize_discogs', { method: 'POST' });
-  const data = await response.json();
-  const authUrl = data.authorize_url;
-
-  // Specify dimensions and features for the modal window
-  const width = 800;
-  const height = 600;
-  const left = (window.outerWidth - width) / 2 + window.screenX;
-  const top = (window.outerHeight - height) / 2 + window.screenY;
-
-  const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
-
-  window.open(authUrl, 'authWindow', features);
-}
-
-// Clear user tokens, UI data and enable login button
-function logoutUser() {
-  fetch('/logout')
-    .then((response) => {
-      if (response.ok) {
-        disableLogoutButton();
-        disableReturnButton();
-        disableTransferButton();
-        checkSpotifyAuthorizationStatus();
-
-        // Clear discogs user info
-        const userInfo = document.querySelector('.user-info');
-        userInfo.querySelector('a').textContent = '';
-        userInfo.querySelector('a').href = '';
-        userInfo.style.visibility = 'hidden';
-
-        // Clear library and playlist list
-        clearLibraryAndPlaylistLists();
-      }
-    })
-    .catch((error) => console.error('Error logging out:', error));
-}
-
-// Clear data from Discogs and Spotify list windows
-function clearLibraryAndPlaylistLists() {
+// Present fetched Discogs library to the user
+function displayLibrary(data) {
   const libraryList = document.getElementById('list-discogs');
-  const playlistList = document.getElementById('list-spotify');
+  libraryList.innerHTML = ''; // Clear previous data
+  const template = document.getElementById('folderTemplate');
 
-  libraryList.innerHTML = '';
-  playlistList.innerHTML = '';
+  data.forEach((folder, index) => {
+    const clone = document.importNode(template.content, true);
+    
+    clone.querySelector('.folder-index').textContent = `${index + 1}`;
+    clone.querySelector('.folder-name').textContent = folder.folder;
+    clone.querySelector('.folder-count').textContent = folder.count;
+
+    // Set the ID on the <li> for reference
+    const listItem = clone.querySelector('li');
+    listItem.id = `folder-${index}`;
+
+    // Add click event listener to library folder
+    listItem.addEventListener('click', () => getCollection(index));
+
+    libraryList.appendChild(clone);
+  });
 }
 
+// Present contents of selected Discogs library folder to the user
+function displayCollection(data) {
+  const albumList = document.getElementById('list-discogs');
+  albumList.innerHTML = ''; // Clear previous data
+  const template = document.getElementById('albumTemplate');
+
+  data.forEach((album, index) => {
+    const clone = document.importNode(template.content, true);
+
+    clone.querySelector('.album-index').textContent = `${index + 1}`;
+    clone.querySelector('.album-artist').textContent = album.artist;
+    clone.querySelector('.album-title').textContent = album.title;
+    clone.querySelector('.album-cover').setAttribute('src', album.cover);
+
+    // Set the ID on the <li> for reference
+    const listItem = clone.querySelector('li');
+    listItem.id = `${album.discogs_id}`;
+
+    albumList.appendChild(clone);
+  });
+
+  enableReturnButton();
+  enableTransferButton();
+}
 
 // remove potentially
 window.addEventListener(
@@ -305,6 +197,46 @@ function getSpotifyAuthURLAndRedirect() {
       }, 200);
     })
     .catch((error) => console.error('Error fetching Spotify auth URL:', error));
+}
+
+// Looking up Discogs collection items in Spotify catalog
+function transferCollectionToSpotify() {
+  const feedbackElement = document.getElementById('feedback');
+  feedbackElement.innerText = '';
+  showSpinner('loading-spinner-spotify', 'Searching Spotify');
+  disableTransferButton();
+  
+  fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
+    .then((response) => {
+      if (!response.ok) {
+        // If server response is not ok, throw an error with the status
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      // Enable and/or focus input element
+      const listSpotify = document.getElementById('list-spotify'); //Check if there is already a playlist loaded to avoid disabling input
+      const hasListItems = listSpotify.children.length > 0;
+
+      if (!hasListItems) {
+        togglePlaylistNameInput();
+        feedbackElement.innerText =
+          'Discogs folder contents were converted to Spotify list successfully. You can see any albums that could not be found highlighted in red in the Discogs window. ';
+      }
+
+      focusPlaylistNameInput();
+
+      hideSpinner('loading-spinner-spotify');
+      displayPlaylist(data); // Update UI with the data
+      enableTransferButton();
+    })
+    .catch((error) => {
+      disableTransferButton();
+      console.error('Fetch error:', error.message);
+      hideSpinner('loading-spinner-spotify');
+      feedbackElement.innerText = 'Error: Spotify - Log in first.';
+    });
 }
 
 // Create Spotify playlist
@@ -360,7 +292,74 @@ function createPlaylist() {
     });
 }
 
+// Present the results of searching collection contents on Spotify to the user
+function displayPlaylist(data) {
+  // Change later to rember data so no repeat fetch is required if library is to be displayed again.
+  const PlaylistList = document.getElementById('list-spotify');
+  PlaylistList.innerHTML = ''; // Clear previous data
+
+  const template = document.getElementById('albumTemplate');
+
+  data.forEach((album, index) => {
+    if (album.found) {
+      const clone = document.importNode(template.content, true);
+      // Now you can find and populate the specific parts of the template
+      clone.querySelector('.album-index').textContent = `${index + 1}`;
+      clone.querySelector('.album-artist').textContent = album.artist;
+      clone.querySelector('.album-title').textContent = album.title;
+      clone.querySelector('.album-cover').setAttribute('src', album.image);
+
+      // Set the ID on the <li> for reference
+      const listItem = clone.querySelector('li');
+      listItem.id = `${album.discogs_id}`;
+
+      PlaylistList.appendChild(clone);
+    } else {
+      const albumElementInLibrary = document.querySelector(
+        `#list-discogs li[id="${album.discogs_id}"] .album`
+      );
+
+      // Communicate items that were not found in Spotify catalog by highlighting respective items in the Discogs field
+      if (albumElementInLibrary) {
+        albumElementInLibrary.classList.add('not-found-highlight');
+      }
+    }
+  });
+}
+
 // ---- OTHER ----
+
+// Clear user tokens, UI data and enable login button
+function logoutUser() {
+  fetch('/logout')
+    .then((response) => {
+      if (response.ok) {
+        disableLogoutButton();
+        disableReturnButton();
+        disableTransferButton();
+        checkSpotifyAuthorizationStatus();
+
+        // Clear discogs user info
+        const userInfo = document.querySelector('.user-info');
+        userInfo.querySelector('a').textContent = '';
+        userInfo.querySelector('a').href = '';
+        userInfo.style.visibility = 'hidden';
+
+        // Clear library and playlist list
+        clearLibraryAndPlaylistLists();
+      }
+    })
+    .catch((error) => console.error('Error logging out:', error));
+}
+
+// Clear data from Discogs and Spotify list windows
+function clearLibraryAndPlaylistLists() {
+  const libraryList = document.getElementById('list-discogs');
+  const playlistList = document.getElementById('list-spotify');
+
+  libraryList.innerHTML = '';
+  playlistList.innerHTML = '';
+}
 
 function seeReport() {
   fetch('/see_report')
@@ -387,7 +386,7 @@ function seeReport() {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      
+
       // Provide a default name for the file to be downloaded
       a.download = 'export_report.txt';
 
