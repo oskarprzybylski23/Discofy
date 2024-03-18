@@ -4,6 +4,7 @@ import csv
 from dotenv import load_dotenv
 import os
 from flask import session
+import time
 
 load_dotenv()
 
@@ -73,12 +74,16 @@ def import_collection(folder_id=0):
     selected_folder = me.collection_folders[folder_id]
 
     for index, item in enumerate(selected_folder.releases, start=1):
-        print(f'request ${index}')
+    
         album = item.release
-        print(album.url)
+        
         release = {'index': index, 'artist': album.artists[0].name, 'title': album.title,
                    'year': album.year, 'discogs_id': album.id, 'cover': album.thumb, 'url': album.url}
         collection.append(release)
+
+        # temporary for debugging due to issues with 429 errors (too many requests).
+        print(f'request ${index}:{album.title}')
+        time.sleep(1.5)
 
     export_to_json(collection)
     export_to_csv(collection)
