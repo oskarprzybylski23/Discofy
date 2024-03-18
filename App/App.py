@@ -122,7 +122,7 @@ def see_report():
 def authorize_discogs():
 
     d = discogs_client.Client(
-        'my_user_agent/1.0', consumer_key=consumer_key, consumer_secret=consumer_secret
+        'discofy/0.1', consumer_key=consumer_key, consumer_secret=consumer_secret
     )
 
     token, secret, url = d.get_authorize_url(callback_url='http://127.0.0.1:5000/oauth_callback')
@@ -146,7 +146,7 @@ def oauth_callback():
         return 'Session expired or invalid request', 400
 
     d = discogs_client.Client(
-        'my_user_agent/1.0',
+        'discofy/0.1',
         consumer_key=consumer_key,
         consumer_secret=consumer_secret
     )

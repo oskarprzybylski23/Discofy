@@ -26,7 +26,7 @@ def initialize_discogs_client():
         return None
     
     d = discogs_client.Client(
-        'my_user_agent/1.0',
+        'discofy/0.1',
         consumer_key=consumer_key,
         consumer_secret=consumer_secret,
         token=access_token,
@@ -76,14 +76,14 @@ def import_collection(folder_id=0):
     for index, item in enumerate(selected_folder.releases, start=1):
     
         album = item.release
-        
+
         release = {'index': index, 'artist': album.artists[0].name, 'title': album.title,
                    'year': album.year, 'discogs_id': album.id, 'cover': album.thumb, 'url': album.url}
         collection.append(release)
 
         # temporary for debugging due to issues with 429 errors (too many requests).
         print(f'request ${index}:{album.title}')
-        time.sleep(1.5)
+        # time.sleep(1.5)
 
     export_to_json(collection)
     export_to_csv(collection)
