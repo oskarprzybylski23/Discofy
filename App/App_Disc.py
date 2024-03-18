@@ -15,7 +15,6 @@ def retrieve_tokens():
     access_token_secret = session.get('access_token_secret')
 
     if not access_token or not access_token_secret:
-        print("Access token or secret is missing.")
         return None, None
 
     return access_token, access_token_secret
@@ -34,7 +33,6 @@ def initialize_discogs_client():
     )
 
     if d is None:
-        print("Failed to initialize Discogs client.")
         return
 
     me = d.identity()
@@ -42,7 +40,6 @@ def initialize_discogs_client():
     return me
 
 def import_library():
-    print("Fetching library")
     me = initialize_discogs_client()
 
     username = me.username
@@ -55,7 +52,6 @@ def import_library():
     for index, folder in enumerate(folders, start=1):
         folder_item = {'index': index, 'folder': folder.name, 'count': str(folder.count) + " records"}
         library.append(folder_item)
-        # print(folder.releases)
 
     response = {
         'user_info': {
@@ -69,11 +65,7 @@ def import_library():
 
 def import_collection(folder_id=0):
 
-    print("importing collection") 
-
     me = initialize_discogs_client()
-
-    print('user authorized:' + str(me))
 
     # Create a list of records in the collection with position information
     collection = []
@@ -92,7 +84,6 @@ def import_collection(folder_id=0):
     return collection   
 
 def export_to_json(collection, filename="import_data.json"):
-    print("creating json")
     app_folder = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(app_folder, filename)
 
@@ -102,7 +93,6 @@ def export_to_json(collection, filename="import_data.json"):
 
 def export_to_csv(list, filename="discogs_collection.csv"):
     #   Append data to csv
-    print("creating csv")
     filename = filename
     f = open(filename, 'w+')
     f.close

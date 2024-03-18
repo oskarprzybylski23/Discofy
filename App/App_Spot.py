@@ -21,7 +21,6 @@ def transfer_from_discogs():
     token = session['tokens']['access_token']
 
     if not token:
-        print("User authentication failed!")
         return False
 
     spotify = spotipy.Spotify(auth=token)
@@ -38,7 +37,7 @@ def transfer_from_discogs():
         
         if result["albums"]["items"]:
             # log for development only
-            # print(json.dumps(album, indent=4))
+
             album = result["albums"]["items"][0]    
             album_data = {
             "artist": album["artists"][0]["name"],
@@ -52,8 +51,6 @@ def transfer_from_discogs():
             }
 
             export_data.append(album_data)
-            # log for development only
-            print("Successfully transferred: " + album_data["title"] + " by " + album_data["artist"])
 
         else:
 
@@ -65,13 +62,8 @@ def transfer_from_discogs():
             }
 
             export_data.append(album_data)
-            # log for development only
-            print("Failed to add: " + artist + " - " + title)
 
     save_export_data_to_json(export_data)
-
-    # log for debugging only
-    print(json.dumps(export_data, indent=2))
 
     return export_data
 
@@ -80,7 +72,6 @@ def create_playlist(name):
     token = session['tokens']['access_token']
 
     if not token:
-        print("User authentication failed!")
         return False
 
     spotify = spotipy.Spotify(auth=token)
@@ -108,9 +99,6 @@ def create_playlist(name):
 
                     # statistics
                     tracks_number = tracks_number + len(tracks)
-
-                # log for debugging only
-                # print(json.dumps(tracks, indent = 2))
 
         playlist_url = playlist["external_urls"]["spotify"]
         create_report(playlist_data, tracks_number, playlist_name, playlist_url)

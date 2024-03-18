@@ -36,7 +36,6 @@ def index():
 def get_library():
     try:
         output = App_Disc.import_library()
-        # print(output)
         return jsonify(output)
     except Exception as e:
         print(f"Error during collection import: {e}")
@@ -77,7 +76,6 @@ def handle_create_playlist():
 def see_report():
     file_path = os.path.join(current_app.root_path, '..', 'export_report.txt')
     absolute_file_path = os.path.abspath(file_path)
-    print(f"Attempting to access file at: {absolute_file_path}")
     
     try:
         return send_file(absolute_file_path, as_attachment=True, download_name='export_report.txt')
@@ -86,7 +84,6 @@ def see_report():
 
 @app.route('/authorize_discogs', methods=['POST'])
 def authorize_discogs():
-    print("authorizing user")
 
     d = discogs_client.Client(
         'my_user_agent/1.0', consumer_key=consumer_key, consumer_secret=consumer_secret
@@ -161,7 +158,6 @@ def authorized_success():
 
 @app.route('/spotify_auth_url')
 def get_spotify_auth_url():
-    print("enters spotify_auth_url")
     oauth_object = SpotifyOAuth(
         client_id=client_id,
         client_secret=client_secret,
@@ -170,7 +166,6 @@ def get_spotify_auth_url():
         cache_path=".token_cache"
     )
     auth_url = oauth_object.get_authorize_url()
-    # print(auth_url)
     return jsonify({'auth_url': auth_url})
 
 
@@ -190,7 +185,6 @@ def check_access_token_expiry():
         return  # Token not in session, handle to enable login
     current_time = int(time.time())
     if session['tokens']['expires_at'] - current_time < 60:  # Check if the token expires in the next 60 seconds
-        print("Access token is expiring soon or already expired. Refreshing...")
         refresh_access_token()
 
 def refresh_access_token():
@@ -217,11 +211,11 @@ def login():
 
 @app.route('/spotify_callback')
 def spotify_callback():
-    # print(request.url)
     code = request.args.get('code')
     
     if not code:
-        print("No auth code in request")
+        return "Error: No authorization code received. Please try again."
+        
     # Now exchange the auth code for an access token
     token_data = {
         'grant_type': 'authorization_code',
