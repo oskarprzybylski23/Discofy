@@ -1,8 +1,8 @@
 import discogs_client
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, send_file, current_app
 import requests
-import App_Disc
-import App_Spot
+from . import App_Disc
+from . import App_Spot
 from dotenv import load_dotenv
 import os
 from flask import session
