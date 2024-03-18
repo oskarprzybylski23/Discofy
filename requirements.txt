@@ -26,6 +26,8 @@ flask-sslify==0.1.5
     # via -r requirements.in
 flask-talisman==1.1.0
     # via -r requirements.in
+gunicorn==21.2.0
+    # via -r requirements.in
 idna==3.6
     # via requests
 itsdangerous==2.1.2
@@ -38,6 +40,8 @@ markupsafe==2.1.5
     #   werkzeug
 oauthlib==3.2.2
     # via discogs-client
+packaging==24.0
+    # via gunicorn
 python-dotenv==1.0.1
     # via -r requirements.in
 redis==5.0.3
