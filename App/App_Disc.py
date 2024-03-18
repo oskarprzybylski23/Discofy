@@ -73,9 +73,11 @@ def import_collection(folder_id=0):
     selected_folder = me.collection_folders[folder_id]
 
     for index, item in enumerate(selected_folder.releases, start=1):
-
-        release = {'index': index, 'artist': item.release.fetch('artists')[0]['name'], 'title': item.release.title,
-                   'year': item.release.fetch('year'), 'discogs_id': item.release.fetch('id'), 'cover': item.release.fetch('thumb'), 'url': item.release.fetch('uri')}
+        print(f'request ${index}')
+        album = item.release
+        print(album.url)
+        release = {'index': index, 'artist': album.artists[0].name, 'title': album.title,
+                   'year': album.year, 'discogs_id': album.id, 'cover': album.thumb, 'url': album.url}
         collection.append(release)
 
     export_to_json(collection)

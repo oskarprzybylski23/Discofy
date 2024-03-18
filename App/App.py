@@ -9,18 +9,53 @@ from flask import session
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
-
-app = Flask(__name__)
-
-app.secret_key = os.environ.get('APP_SECRET_KEY')
+from flask_sslify import SSLify
+from flask_talisman import Talisman
+from bleach import clean
 
 load_dotenv()
 
-scope = 'playlist-modify-public'
+app = Flask(__name__)
+sslify = SSLify(app)
+
+csp = {
+    'default-src': '\'self\'',
+    'style-src': [
+        '\'self\'',
+        'https://fonts.googleapis.com',
+        '\'unsafe-inline\'',  # Allows inline styles
+    ],
+    'font-src': [
+        '\'self\'',
+        'https://fonts.gstatic.com',
+    ],
+    'img-src': [
+        '\'self\'',
+        'https://i.discogs.com',
+        'https://i.scdn.co'
+    ],
+    'script-src': [
+        '\'self\'',
+        '\'unsafe-inline\'',  # Caution: Allows all inline scripts, use with care
+    ],
+}
+
+talisman = Talisman(app, content_security_policy=csp)
+
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookies.
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Restrict cookies to first-party or same-site context.
+
+# Flask app environment variables
+app.secret_key = os.environ.get('APP_SECRET_KEY')
+
+# Spotify environment variables
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
 redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
+scope = 'playlist-modify-public'
 
+# Discogs environment variables
 consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
 consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
 
@@ -66,7 +101,8 @@ def handle_create_playlist():
     check_access_token_expiry()
     data = request.get_json()
     playlist_name = data.get('name')
-    playlist_url = App_Spot.create_playlist(playlist_name)
+    sanitized_name = clean(playlist_name, tags=[], attributes={}, strip=True)
+    playlist_url = App_Spot.create_playlist(sanitized_name)
     if playlist_url:
         return jsonify({"status": "success", "message": "Playlist created successfully.", "url": playlist_url})
     else:
