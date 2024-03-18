@@ -6,8 +6,6 @@ import App_Spot
 from dotenv import load_dotenv
 import os
 from flask import session
-from pathlib import Path
-from threading import Thread
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
