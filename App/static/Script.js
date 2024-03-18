@@ -5,11 +5,9 @@ async function startImportProcess() {
   const { authorized } = await response.json();
 
   if (authorized) {
-    console.log('Already authorized. Fetching collection.');
     enableLogoutButton();
     getLibrary(); // Directly fetch and display the collection
   } else {
-    console.log('Not authorized. Opening authorization URL.');
     await openAuthorizationUrl();
     checkAuthorizationStatus(); // Start polling for authorization status
   }
@@ -109,8 +107,6 @@ function checkAuthorizationStatus() {
     const response = await fetch('/check_authorization');
     const { authorized } = await response.json();
 
-    console.log(`check authorization status: ${authorized}`);
-
     if (authorized) {
       enableLogoutButton();
       clearInterval(interval);
@@ -120,10 +116,10 @@ function checkAuthorizationStatus() {
 }
 
 function getLibrary() {
-  console.log(`Fetching folders`);
   const feedbackElement = document.getElementById('feedback');
   feedbackElement.innerText = '';
   showSpinner('loading-spinner-discogs', 'Fetching your library');
+  
   fetch(`http://127.0.0.1:5000/get_library`)
     .then((response) => {
       if (!response.ok) {
@@ -148,10 +144,10 @@ function getLibrary() {
 }
 
 function getCollection(folder) {
-  console.log(`Fetching collection for folder ${folder}`);
   const feedbackElement = document.getElementById('feedback');
   feedbackElement.innerText = '';
   showSpinner('loading-spinner-discogs', 'Fetching folder contents');
+  
   fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
     .then((response) => {
       if (!response.ok) {
@@ -172,11 +168,11 @@ function getCollection(folder) {
 }
 
 function transferCollectionToSpotify() {
-  console.log(`Transfering to Spotify`);
   const feedbackElement = document.getElementById('feedback');
   feedbackElement.innerText = '';
   showSpinner('loading-spinner-spotify', 'Searching Spotify');
   disableTransferButton();
+  
   fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
     .then((response) => {
       if (!response.ok) {
@@ -232,7 +228,6 @@ function logoutUser() {
   fetch('/logout')
     .then((response) => {
       if (response.ok) {
-        console.log('User logged out');
         disableLogoutButton();
         disableReturnButton();
         disableTransferButton();
@@ -260,13 +255,12 @@ function clearLibraryAndPlaylistLists() {
   playlistList.innerHTML = '';
 }
 
+
+// remove potentially
 window.addEventListener(
   'message',
   (event) => {
     if (event.data === 'authorizationComplete') {
-      console.log(
-        'Discogs authorization completed. Proceeding with next steps.'
-      );
       // Close modal if you have one open
       // Refresh data or UI as necessary
     }
@@ -297,7 +291,6 @@ function getSpotifyAuthURLAndRedirect() {
       // Poll to check if the window is closed
       const pollTimer = window.setInterval(function () {
         if (spotifyAuthWindow.closed !== false) {
-          console.log('window closed');
           window.clearInterval(pollTimer);
           checkSpotifyAuthorizationStatus(); // Check authorization status after login window is closed
         }
@@ -319,8 +312,8 @@ function createPlaylist() {
 
   togglePlaylistNameInput();
   toggleCreatePlaylistButton();
-
   showSpinner('loading-spinner-spotify', 'Creating your playlist');
+  
   fetch('/create_playlist', {
     method: 'POST', // Specify the method
     headers: {
@@ -335,7 +328,6 @@ function createPlaylist() {
       hideSpinner('loading-spinner-spotify');
 
       if (data.status === 'success') {
-        console.log(data.message);
         feedbackElement.innerText = data.message;
 
         // Display the playlist URL or redirect the user
@@ -401,7 +393,6 @@ function seeReport() {
 
 // Function to check Spotify authorization status
 function checkSpotifyAuthorizationStatus() {
-  console.log('checking spotify authorization');
   fetch('/check_spotify_authorization')
     .then((response) => response.json())
     .then((data) => {
@@ -493,7 +484,6 @@ function disableReturnButton() {
 }
 
 function toggleTransferButton() {
-  console.log('toggling transfer button');
   const spotifyLoginButton = document.getElementById('spotifyLoginButton');
   const button = document.getElementById('libraryTransferButton');
   if ((spotifyLoginButton.disabled = true)) {
@@ -507,7 +497,6 @@ function toggleSaveReportButton() {
 }
 
 function enableTransferButton() {
-  console.log('enabling transfer button');
   const spotifyLoginButton = document.getElementById('spotifyLoginButton');
   const button = document.getElementById('libraryTransferButton');
   if (spotifyLoginButton.disabled == true) {
@@ -516,19 +505,16 @@ function enableTransferButton() {
 }
 
 function disableTransferButton() {
-  console.log('enabling transfer button');
   const button = document.getElementById('libraryTransferButton');
   button.disabled = true;
 }
 
 function enableLogoutButton() {
-  console.log('enabling logout');
   const button = document.getElementById('logoutButton');
   button.disabled = false;
 }
 
 function disableLogoutButton() {
-  console.log('disabling logout');
   const button = document.getElementById('logoutButton');
   button.disabled = true;
 }
