@@ -1,34 +1,35 @@
 // ---- DISCOGS ----
 
+// function to initiate connection to Discogs by authorising user and then fetching authorised user library
 async function startImportProcess() {
-  const response = await fetch('/check_authorization');
+  const response = await fetch('/check_authorization'); // check if user is already authorised
   const { authorized } = await response.json();
 
-  if (authorized) {
+  if (authorized) { // if authorised proceed with fetching library data
     enableLogoutButton();
-    getLibrary(); // Directly fetch and display the collection
-  } else {
+    getLibrary();
+  } else { // if not authorised proceed with authorisation
     await openAuthorizationUrl();
     checkAuthorizationStatus(); // Start polling for authorization status
   }
 }
 
+// Navigate back to library view
 function returnToLibrary() {
   disableReturnButton();
   disableTransferButton();
   getLibrary();
 }
 
+// Present fetched Discogs library to the user
 function displayLibrary(data) {
-  // Change later to rember data so no repeat fetch is required if library is to be displayed again.
   const libraryList = document.getElementById('list-discogs');
   libraryList.innerHTML = ''; // Clear previous data
-
   const template = document.getElementById('folderTemplate');
 
   data.forEach((folder, index) => {
     const clone = document.importNode(template.content, true);
-    // Now you can find and populate the specific parts of the template
+    
     clone.querySelector('.folder-index').textContent = `${index + 1}`;
     clone.querySelector('.folder-name').textContent = folder.folder;
     clone.querySelector('.folder-count').textContent = folder.count;
@@ -37,16 +38,17 @@ function displayLibrary(data) {
     const listItem = clone.querySelector('li');
     listItem.id = `folder-${index}`;
 
+    // Add click event listener to library folder
     listItem.addEventListener('click', () => getCollection(index));
 
     libraryList.appendChild(clone);
   });
 }
 
+// Present contents of selected Discogs library folder to the user
 function displayCollection(data) {
   const albumList = document.getElementById('list-discogs');
   albumList.innerHTML = ''; // Clear previous data
-
   const template = document.getElementById('albumTemplate');
 
   data.forEach((album, index) => {
@@ -63,10 +65,12 @@ function displayCollection(data) {
 
     albumList.appendChild(clone);
   });
+
   enableReturnButton();
   enableTransferButton();
 }
 
+// Present the results of searching collection contents on Spotify to the user
 function displayPlaylist(data) {
   // Change later to rember data so no repeat fetch is required if library is to be displayed again.
   const PlaylistList = document.getElementById('list-spotify');
@@ -93,8 +97,8 @@ function displayPlaylist(data) {
         `#list-discogs li[id="${album.discogs_id}"] .album`
       );
 
+      // Communicate items that were not found in Spotify catalog by highlighting respective items in the Discogs field
       if (albumElementInLibrary) {
-        // Add a class to highlight the album, ensure you define this class in your CSS
         albumElementInLibrary.classList.add('not-found-highlight');
       }
     }
@@ -110,11 +114,12 @@ function checkAuthorizationStatus() {
     if (authorized) {
       enableLogoutButton();
       clearInterval(interval);
-      getLibrary(); // Fetch the collection
+      getLibrary(); // Fetch the Discogs library
     }
   }, 5000);
 }
 
+// Fetch user library folders data from Discogs
 function getLibrary() {
   const feedbackElement = document.getElementById('feedback');
   feedbackElement.innerText = '';
@@ -143,9 +148,10 @@ function getLibrary() {
     });
 }
 
+// Fetch selected folder content data from Discogs
 function getCollection(folder) {
   const feedbackElement = document.getElementById('feedback');
-  feedbackElement.innerText = '';
+  feedbackElement.innerText = ''; // Clear previous data 
   showSpinner('loading-spinner-discogs', 'Fetching folder contents');
   
   fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
@@ -158,7 +164,7 @@ function getCollection(folder) {
     })
     .then((data) => {
       hideSpinner('loading-spinner-discogs');
-      displayCollection(data); // Update the UI with the data
+      displayCollection(data); // Update UI with the data
     })
     .catch((error) => {
       console.error('Fetch error:', error.message);
@@ -167,6 +173,7 @@ function getCollection(folder) {
     });
 }
 
+// Looking up Discogs collection items in Spotify catalog
 function transferCollectionToSpotify() {
   const feedbackElement = document.getElementById('feedback');
   feedbackElement.innerText = '';
@@ -195,8 +202,7 @@ function transferCollectionToSpotify() {
       focusPlaylistNameInput();
 
       hideSpinner('loading-spinner-spotify');
-      // Update the UI with the data
-      displayPlaylist(data);
+      displayPlaylist(data); // Update UI with the data
       enableTransferButton();
     })
     .catch((error) => {
@@ -207,6 +213,7 @@ function transferCollectionToSpotify() {
     });
 }
 
+// Open modal authorization winwdow for Discogs
 async function openAuthorizationUrl() {
   const response = await fetch('/authorize_discogs', { method: 'POST' });
   const data = await response.json();
@@ -220,10 +227,10 @@ async function openAuthorizationUrl() {
 
   const features = `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`;
 
-  window.open(authUrl, 'authWindow', features); // Open the URL in a new tab or window
+  window.open(authUrl, 'authWindow', features);
 }
 
-// Clear user tokens and enable login button
+// Clear user tokens, UI data and enable login button
 function logoutUser() {
   fetch('/logout')
     .then((response) => {
@@ -233,7 +240,7 @@ function logoutUser() {
         disableTransferButton();
         checkSpotifyAuthorizationStatus();
 
-        // clear discogs user info
+        // Clear discogs user info
         const userInfo = document.querySelector('.user-info');
         userInfo.querySelector('a').textContent = '';
         userInfo.querySelector('a').href = '';
@@ -246,11 +253,11 @@ function logoutUser() {
     .catch((error) => console.error('Error logging out:', error));
 }
 
+// Clear data from Discogs and Spotify list windows
 function clearLibraryAndPlaylistLists() {
   const libraryList = document.getElementById('list-discogs');
   const playlistList = document.getElementById('list-spotify');
 
-  // Clear the content of the library and playlist lists
   libraryList.innerHTML = '';
   playlistList.innerHTML = '';
 }
@@ -270,6 +277,7 @@ window.addEventListener(
 
 // ---- SPOTIFY ----
 
+// Open modal authorization winwdow for Spotify
 function getSpotifyAuthURLAndRedirect() {
   fetch('/spotify_auth_url')
     .then((response) => response.json())
@@ -299,14 +307,15 @@ function getSpotifyAuthURLAndRedirect() {
     .catch((error) => console.error('Error fetching Spotify auth URL:', error));
 }
 
+// Create Spotify playlist
 function createPlaylist() {
   playlistName = document.getElementById('playlist-name').value;
   const feedbackElement = document.getElementById('feedback');
-  feedbackElement.innerText = '';
-  // Check if the playlistName is empty
+  feedbackElement.innerText = ''; // Clear previous data
+
+  // Handle case if playlistName is empty
   if (!playlistName.trim()) {
-    // Update the UI to show an error message
-    feedbackElement.innerText = 'Please enter a playlist name.';
+     feedbackElement.innerText = 'Please enter a playlist name.';
     return;
   }
 
@@ -314,8 +323,9 @@ function createPlaylist() {
   toggleCreatePlaylistButton();
   showSpinner('loading-spinner-spotify', 'Creating your playlist');
   
+// create playlist
   fetch('/create_playlist', {
-    method: 'POST', // Specify the method
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -327,10 +337,9 @@ function createPlaylist() {
     .then((data) => {
       hideSpinner('loading-spinner-spotify');
 
+      // Display feedback and link to the playlist
       if (data.status === 'success') {
         feedbackElement.innerText = data.message;
-
-        // Display the playlist URL or redirect the user
         const playlistLinkElement = document.createElement('a');
         playlistLinkElement.href = data.url;
         playlistLinkElement.innerText = 'Open in Spotify';
@@ -348,7 +357,6 @@ function createPlaylist() {
     })
     .catch((error) => {
       console.error('Error:', error);
-      // Update the UI to show error
     });
 }
 
@@ -359,7 +367,7 @@ function seeReport() {
     .then((response) => {
       if (!response.ok) {
         if (response.status === 404) {
-          // Handle file not found specifically
+          // Handle file not found
           alert(
             'The report file has not been found. It is possible that the playlist has not been created yet.'
           );
@@ -367,7 +375,7 @@ function seeReport() {
           // Handle other types of errors
           throw new Error('Network response was not ok.');
         }
-        return; // Stop processing further since there was an error
+        return;
       }
       return response.blob();
     })
@@ -379,6 +387,7 @@ function seeReport() {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
+      
       // Provide a default name for the file to be downloaded
       a.download = 'export_report.txt';
 
@@ -461,14 +470,12 @@ function focusPlaylistNameInput() {
 }
 
 function toggleCreatePlaylistButtonOnInput() {
-  // Check if the input is not empty to enable the button, else disable it
   const playlistName = document.getElementById('playlist-name').value;
   const button = document.getElementById('create-playlist-button');
   button.disabled = !playlistName.trim(); // Disable button if input is empty or only whitespace
 }
 
 function toggleCreatePlaylistButton() {
-  // Check if the input is not empty to enable the button, else disable it
   const button = document.getElementById('create-playlist-button');
   button.disabled = !button.disabled;
 }
@@ -483,14 +490,6 @@ function disableReturnButton() {
   button.disabled = true;
 }
 
-function toggleTransferButton() {
-  const spotifyLoginButton = document.getElementById('spotifyLoginButton');
-  const button = document.getElementById('libraryTransferButton');
-  if ((spotifyLoginButton.disabled = true)) {
-    button.disabled = !button.disabled;
-  }
-}
-
 function toggleSaveReportButton() {
   const button = document.getElementById('seeReportButton');
   button.disabled = !button.disabled;
@@ -499,7 +498,7 @@ function toggleSaveReportButton() {
 function enableTransferButton() {
   const spotifyLoginButton = document.getElementById('spotifyLoginButton');
   const button = document.getElementById('libraryTransferButton');
-  if (spotifyLoginButton.disabled == true) {
+  if (spotifyLoginButton.disabled == true) { //enable the button only if user has logged into Spotify
     button.disabled = false;
   }
 }
