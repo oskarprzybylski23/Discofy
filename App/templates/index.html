@@ -32,8 +32,8 @@
       </div>
       <div class="header-container">
         <button class="button-round" id="libraryReturnButton" disabled>
-          <svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg id="svg-arrow" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.03.47a.75.75 0 0 1 0 1.06L4.56 8l6.47 6.47a.75.75 0 1 1-1.06 1.06L2.44 8 9.97.47a.75.75 0 0 1 1.06 0z" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         <h2>Discogs Collection</h2>
@@ -42,7 +42,11 @@
         <ul class="collection-list" id="list-discogs"></ul>
       </div>
       <div id="transfer-button-container">
-        <button class="button" id="libraryTransferButton" disabled>Move to Spotify</button>
+        <button class="button" id="libraryTransferButton" disabled>Move Collection
+          <svg id="svg-arrow" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4.97.47a.75.75 0 0 0 0 1.06L11.44 8l-6.47 6.47a.75.75 0 1 0 1.06 1.06L13.56 8 6.03.47a.75.75 0 0 0-1.06 0z" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
       <div class="list-section" id="list-container-spotify">
         <div class="spinner-container" id="loading-spinner-spotify" style="display: none;">
@@ -54,8 +58,10 @@
         </div>
         <p class="user-info spotify" id="user-info-spotify">Logged in: <a href="" target="_blank"></a></p>
         <ul class="collection-list" id="list-spotify"></ul>
-        <input type="text" id="playlist-name" maxlength="100" placeholder="Enter your playlist name" oninput="toggleCreatePlaylistButtonOnInput()" disabled>
-        <button class="button" id="create-playlist-button" disabled>Create Playlist</button>
+        <div id="create-playlist-container">
+          <input type="text" id="playlist-name" maxlength="100" placeholder="Enter your playlist name" oninput="toggleCreatePlaylistButtonOnInput()" disabled>
+          <button class="button" id="create-playlist-button" disabled>Create Playlist</button>
+        </div>
       </div>
     </div>
     <div id="feedback-section">
@@ -66,6 +72,12 @@
     </script>
     <script src="../static/Script.js"></script>
   </main>
+  <footer>
+    <div>
+      <span>Created by <a class="footer-link" href="//github.com/oskarprzybylski23" target="_blank"><img class="icon" src="static/gitHub_icon.svg" alt="GitHub Icon">Oskar Przybylski</a> (2024)</span>
+    </div>
+
+  </footer>
   <template id="folderTemplate">
     <li class="library-item">
       <div class="folder">

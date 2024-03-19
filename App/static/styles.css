@@ -2,8 +2,10 @@
 :root {
     /* Color palette */
     --spotify-green: #1db954;
+    --spotify-green-highlight: #15803b;
     --background: #121212;
     --mid-background: #212121;
+    --mid-background-hover: #313131;
     --light-background: #535353;
     --highlight-bright: #787878;
     --higlight-dark: #121212;
@@ -16,18 +18,36 @@
   }
 
 body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
     font-family: var(--font-main);
     text-align: center;
     background-color: var(--background);
     color: var(--font-bright);
+    min-height: 100vh;
+    margin: 0px;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 h1 {
+    font-size: 32px;
     color: var(--spotify-green);
+}
 
+h2 {
+    font-size: 24px;
+    color: var(--font-bright);
 }
 
 h3 {
+    font-size: 18px;
     color: var(--font-dark);
     margin-top: 0;
     margin-bottom: 50px;
@@ -36,6 +56,36 @@ h3 {
 header {
     display: flex;
     flex-direction: column;
+}
+
+footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    height: 35px;
+    bottom: 0;
+    /* position: absolute; */
+    font-size: 14px;
+}
+
+footer div span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.icon {
+    height: 16px;
+    vertical-align: middle;
+    filter: invert(100%);
+}
+
+.footer-link {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin: 0;
+    text-decoration: none;
 }
 
 #logo {
@@ -51,12 +101,28 @@ header {
     gap: 1rem;
 }
 
+#create-playlist-container {
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+}
+
 input {
     background-color: var(--mid-background);
     color: var(--font-bright);
     border: none;
+    border: solid 1px transparent;
     border-radius: 500px;
     padding: 10px 10px;
+}
+
+input:hover {
+    background-color: var(--mid-background-hover);
+    border: solid 1px var(--highlight-bright);
+}
+
+input:focus {
+    background-color: var(--mid-background-hover);
 }
 
 input:disabled {
@@ -67,6 +133,7 @@ input:disabled {
 }
 
 .button {
+    font-size: 14px;
     background-color: var(--mid-background);
     color: var(--font-bright);
     border: none;
@@ -106,17 +173,26 @@ input:disabled {
     cursor:default;
 }
 
+#button-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+
+}
+
 #display-section {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: space-between;
     margin-top: 20px;
+    width: 1280px;
 }
 
 .header-container {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Ensures the button and the placeholder div push the title to the center */
+    justify-content: space-between;
     text-align: center;
 }
 
@@ -131,6 +207,7 @@ input:disabled {
 
 .user-info {
     text-align: left;
+    font-size: 14px;
     visibility: hidden;
 }
 
@@ -213,11 +290,15 @@ cursor: default;
   }
 
 #libraryTransferButton {
-    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: fit-content;
+    max-width: fit-content;
+    min-width: none;
 }
 
 #transfer-button-container {
-    width: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -250,6 +331,10 @@ a {
     margin-top: 10px;
     font-weight: bold;
     color: var(--spotify-green);
+}
+
+a:hover {
+    color: var(--spotify-green-highlight);
 }
 
 .spinner-container {

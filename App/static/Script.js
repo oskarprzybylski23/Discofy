@@ -338,6 +338,8 @@ function logoutUser() {
         disableLogoutButton();
         disableReturnButton();
         disableTransferButton();
+        disableCreatePlaylistButton();
+        disablePlaylistNameInput();
         checkSpotifyAuthorizationStatus();
 
         // Clear discogs user info
@@ -357,9 +359,11 @@ function logoutUser() {
 function clearLibraryAndPlaylistLists() {
   const libraryList = document.getElementById('list-discogs');
   const playlistList = document.getElementById('list-spotify');
+  const feedbackElement = document.getElementById('feedback');
 
   libraryList.innerHTML = '';
   playlistList.innerHTML = '';
+  feedbackElement.innerText = '';
 }
 
 function seeReport() {
@@ -490,6 +494,11 @@ function togglePlaylistNameInput() {
   inputField.disabled = !inputField.disabled;
 }
 
+function disablePlaylistNameInput() {
+  const inputField = document.getElementById('playlist-name');
+  inputField.disabled = true;
+}
+
 function focusPlaylistNameInput() {
   const inputField = document.getElementById('playlist-name');
   inputField.focus();
@@ -501,9 +510,14 @@ function toggleCreatePlaylistButtonOnInput() {
   button.disabled = !playlistName.trim(); // Disable button if input is empty or only whitespace
 }
 
+function disableCreatePlaylistButton() {
+  const button = document.getElementById('create-playlist-button');
+  button.disabled = true;
+}
+
 function toggleCreatePlaylistButton() {
   const button = document.getElementById('create-playlist-button');
-  button.disabled = !button.disabled;
+  button.disabled = true;
 }
 
 function enableReturnButton() {
