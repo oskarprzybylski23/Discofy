@@ -2,7 +2,7 @@
   <img src="./App/static/favicon.ico" alt="Discofy Logo" width="100"/>
 </p>
 
-<h1 align="center">Discofy</h1>
+<h1 align="center" style="color: green;">Discofy</h1>
 
 <p align="center">
 Discofy is an application that allows users to create Spotify playlists based on their Discogs collections. This tool retrieves album information from a Discogs collection and creates a Spotify playlist containing tracks from those albums.
@@ -10,17 +10,24 @@ Discofy is an application that allows users to create Spotify playlists based on
   <br>
   <strong>API libraries used:</strong>
   <br>
-  <a href="https://python3-discogs-client.readthedocs.io/en/latest/index.html">View Python Discogs Client Documentation</a>
+  <a href="https://python3-discogs-client.readthedocs.io/en/latest/index.html" target="_blank">View Python Discogs Client Documentation</a>
   ·
-  <a href="https://spotipy.readthedocs.io/en/2.22.1/">View Spotipy Documentation</a>
+  <a href="https://spotipy.readthedocs.io/en/2.22.1/" target="_blank">View Spotipy Documentation</a>
   <br>
   <br>
-  <a href="#">View Demo</a>
+  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues" target="_blank">Report Bug</a>
   ·
-  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues">Report Bug</a>
-  ·
-  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues">Request Feature</a>
+  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues" target="_blank">Request Feature</a>
 </p>
+
+<div align="center">
+    <a href="https://www.loom.com/share/e11a4cab0b6f43749151b7ffd11d150b">
+      <p> Watch Demo</p>
+    </a>
+    <a href="https://www.loom.com/share/e11a4cab0b6f43749151b7ffd11d150b" target="_blank">
+      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/e11a4cab0b6f43749151b7ffd11d150b-1710866229633-with-play.gif">
+    </a>
+  </div>
 
 ---
 
