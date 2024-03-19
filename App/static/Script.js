@@ -78,7 +78,8 @@ function getLibrary() {
     .catch((error) => {
       console.error('Fetch error:', error.message);
       hideSpinner('loading-spinner-discogs');
-      feedbackElement.innerText = 'Error: Discogs - Log in first.';
+      feedbackElement.innerText =
+        'Error: Discogs - There was an issue fetching your collection on the server side. Try again later.';
     });
 }
 
@@ -103,7 +104,8 @@ function getCollection(folder) {
     .catch((error) => {
       console.error('Fetch error:', error.message);
       hideSpinner('loading-spinner-discogs');
-      feedbackElement.innerText = 'Error: Discogs - Log in first.';
+      feedbackElement.innerText =
+        'Error: Discogs - There was an issue fetching your collection on the server side. Try again later.';
     });
 }
 
