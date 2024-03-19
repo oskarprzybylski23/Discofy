@@ -5,10 +5,12 @@ async function startImportProcess() {
   const response = await fetch('/check_authorization'); // check if user is already authorised
   const { authorized } = await response.json();
 
-  if (authorized) { // if authorised proceed with fetching library data
+  if (authorized) {
+    // if authorised proceed with fetching library data
     enableLogoutButton();
     getLibrary();
-  } else { // if not authorised proceed with authorisation
+  } else {
+    // if not authorised proceed with authorisation
     await openAuthorizationUrl();
     checkAuthorizationStatus(); // Start polling for authorization status
   }
@@ -57,8 +59,7 @@ function getLibrary() {
   const feedbackElement = document.getElementById('feedback');
   feedbackElement.innerText = '';
   showSpinner('loading-spinner-discogs', 'Fetching your library');
-  
-  fetch(`http://127.0.0.1:5000/get_library`)
+  fetch(`${window.api_url}/get_library`)
     .then((response) => {
       if (!response.ok) {
         // If server response is not ok, throw an error with the status
@@ -84,10 +85,10 @@ function getLibrary() {
 // Fetch selected folder content data from Discogs
 function getCollection(folder) {
   const feedbackElement = document.getElementById('feedback');
-  feedbackElement.innerText = ''; // Clear previous data 
+  feedbackElement.innerText = ''; // Clear previous data
   showSpinner('loading-spinner-discogs', 'Fetching folder contents');
-  
-  fetch(`http://127.0.0.1:5000/get_collection?folder=${folder}`)
+
+  fetch(`${window.api_url}/get_collection?folder=${folder}`)
     .then((response) => {
       if (!response.ok) {
         // If server response is not ok, throw an error with the status
@@ -114,7 +115,7 @@ function displayLibrary(data) {
 
   data.forEach((folder, index) => {
     const clone = document.importNode(template.content, true);
-    
+
     clone.querySelector('.folder-index').textContent = `${index + 1}`;
     clone.querySelector('.folder-name').textContent = folder.folder;
     clone.querySelector('.folder-count').textContent = folder.count;
@@ -205,8 +206,8 @@ function transferCollectionToSpotify() {
   feedbackElement.innerText = '';
   showSpinner('loading-spinner-spotify', 'Searching Spotify');
   disableTransferButton();
-  
-  fetch(`http://127.0.0.1:5000/transfer_to_spotify`)
+
+  fetch(`${window.api_url}/transfer_to_spotify`)
     .then((response) => {
       if (!response.ok) {
         // If server response is not ok, throw an error with the status
@@ -247,15 +248,15 @@ function createPlaylist() {
 
   // Handle case if playlistName is empty
   if (!playlistName.trim()) {
-     feedbackElement.innerText = 'Please enter a playlist name.';
+    feedbackElement.innerText = 'Please enter a playlist name.';
     return;
   }
 
   togglePlaylistNameInput();
   toggleCreatePlaylistButton();
   showSpinner('loading-spinner-spotify', 'Creating your playlist');
-  
-// create playlist
+
+  // create playlist
   fetch('/create_playlist', {
     method: 'POST',
     headers: {
@@ -523,7 +524,8 @@ function toggleSaveReportButton() {
 function enableTransferButton() {
   const spotifyLoginButton = document.getElementById('spotifyLoginButton');
   const button = document.getElementById('libraryTransferButton');
-  if (spotifyLoginButton.disabled == true) { //enable the button only if user has logged into Spotify
+  if (spotifyLoginButton.disabled == true) {
+    //enable the button only if user has logged into Spotify
     button.disabled = false;
   }
 }

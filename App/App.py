@@ -19,7 +19,10 @@ app = Flask(__name__)
 sslify = SSLify(app)
 
 csp = {
-    'default-src': '\'self\'',
+    'default-src': [
+        '\'self\'',
+        'https://discofy.onrender.com',
+    ],
     'style-src': [
         '\'self\'',
         'https://fonts.googleapis.com',
@@ -67,7 +70,8 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    api_url = os.getenv('DOMAIN_URL', 'http://127.0.0.1:5000')
+    return render_template('index.html', api_url=api_url)
 
 @app.route('/get_library', methods=['GET'])
 def get_library():
