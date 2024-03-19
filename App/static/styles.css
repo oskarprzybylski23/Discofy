@@ -57,6 +57,26 @@ footer {
     font-size: 0.8rem;
 }
 
+footer div span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.icon {
+    height: 0.8rem;
+    vertical-align: middle;
+    filter: invert(100%);
+}
+
+.footer-link {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin: 0;
+    text-decoration: none;
+}
+
 #logo {
     height: 2rem;
     background-color: #1db954;
