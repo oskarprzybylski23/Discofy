@@ -357,9 +357,11 @@ function logoutUser() {
 function clearLibraryAndPlaylistLists() {
   const libraryList = document.getElementById('list-discogs');
   const playlistList = document.getElementById('list-spotify');
+  const feedbackElement = document.getElementById('feedback');
 
   libraryList.innerHTML = '';
   playlistList.innerHTML = '';
+  feedbackElement.innerText = '';
 }
 
 function seeReport() {
