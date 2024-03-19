@@ -5,6 +5,7 @@
     --spotify-green-highlight: #15803b;
     --background: #121212;
     --mid-background: #212121;
+    --mid-background-hover: #313131;
     --light-background: #535353;
     --highlight-bright: #787878;
     --higlight-dark: #121212;
@@ -96,12 +97,28 @@ footer div span {
     gap: 1rem;
 }
 
+#create-playlist-container {
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+}
+
 input {
     background-color: var(--mid-background);
     color: var(--font-bright);
     border: none;
+    border: solid 1px transparent;
     border-radius: 500px;
     padding: 10px 10px;
+}
+
+input:hover {
+    background-color: var(--mid-background-hover);
+    border: solid 1px var(--highlight-bright);
+}
+
+input:focus {
+    background-color: var(--mid-background-hover);
 }
 
 input:disabled {
