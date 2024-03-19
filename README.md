@@ -57,7 +57,9 @@ SPOTIPY_CLIENT_SECRET= `your_spotify_client_secret`
 SPOTIPY_CLIENT_URI= `your_spotify_redirect_uri`
 DISCOGS_CONSUMER_KEY=`your_discogs_consumer_key`
 DISCOGS_CONSUMER_SECRET=`your_discogs_consumer_secret`
+DISCOGS_REDIRECT_URI='http://127.0.0.1:5000/oauth_callback' //deafult
 APP_SECRET_KEY = `your_app_secret`
+DOMAIN_URL = 'http://127.0.0.1:5000' //deafult
 ```
 
 5. start virtualenv
@@ -73,7 +75,7 @@ python App/App.py
 ```
 
 ## 🚀 Usage
-After setting up, visit http://localhost:5000 in your web browser to start creating your playlists.
+After setting up, visit http://localhost:5000 in your web browser to use the app.
 
 ## 💡 Contributing
 Here's how you can contribute:
