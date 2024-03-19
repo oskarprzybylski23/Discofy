@@ -1,8 +1,8 @@
 import discogs_client
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, send_file, current_app
 import requests
-from . import App_Disc
-from . import App_Spot
+import App_Disc
+import App_Spot
 from dotenv import load_dotenv
 import os
 from flask import session
@@ -58,6 +58,8 @@ scope = 'playlist-modify-public'
 # Discogs environment variables
 consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
 consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
+discogs_redirect_uri = os.getenv('DISCOGS_REDIRECT_URI')
+print(discogs_redirect_uri)
 
 # Spotify OAuth URLs
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
@@ -125,7 +127,7 @@ def authorize_discogs():
         'discofy/0.1', consumer_key=consumer_key, consumer_secret=consumer_secret
     )
 
-    token, secret, url = d.get_authorize_url(callback_url='http://127.0.0.1:5000/oauth_callback')
+    token, secret, url = d.get_authorize_url(callback_url=discogs_redirect_uri)
 
     # Save the request token and secret in the user's session or your chosen storage mechanism
     session['request_token'] = token
