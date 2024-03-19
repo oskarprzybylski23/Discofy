@@ -18,6 +18,10 @@
   }
 
 body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
     font-family: var(--font-main);
     text-align: center;
     background-color: var(--background);
@@ -60,7 +64,7 @@ footer {
     justify-content: center;
     height: 35px;
     bottom: 0;
-    position: absolute;
+    /* position: absolute; */
     font-size: 14px;
 }
 
@@ -180,7 +184,7 @@ input:disabled {
 #display-section {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: space-between;
     margin-top: 20px;
     width: 1280px;
 }
@@ -286,11 +290,15 @@ cursor: default;
   }
 
 #libraryTransferButton {
-    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: fit-content;
+    max-width: fit-content;
+    min-width: none;
 }
 
 #transfer-button-container {
-    width: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
