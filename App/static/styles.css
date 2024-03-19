@@ -152,6 +152,14 @@ input:disabled {
     cursor:default;
 }
 
+#button-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+
+}
+
 #display-section {
     display: flex;
     flex-direction: row;
