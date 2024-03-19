@@ -2,6 +2,7 @@
 :root {
     /* Color palette */
     --spotify-green: #1db954;
+    --spotify-green-highlight: #15803b;
     --background: #121212;
     --mid-background: #212121;
     --light-background: #535353;
@@ -20,6 +21,14 @@ body {
     text-align: center;
     background-color: var(--background);
     color: var(--font-bright);
+    min-height: 100vh;
+    margin: 0px;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 h1 {
@@ -36,6 +45,16 @@ h3 {
 header {
     display: flex;
     flex-direction: column;
+}
+
+footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    height: 35px;
+    bottom: 0;
+    position: absolute;
+    font-size: 0.8rem;
 }
 
 #logo {
@@ -111,12 +130,13 @@ input:disabled {
     flex-direction: row;
     justify-content: space-around;
     margin-top: 20px;
+    width: 1280px;
 }
 
 .header-container {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Ensures the button and the placeholder div push the title to the center */
+    justify-content: space-between;
     text-align: center;
 }
 
@@ -250,6 +270,10 @@ a {
     margin-top: 10px;
     font-weight: bold;
     color: var(--spotify-green);
+}
+
+a:hover {
+    color: var(--spotify-green-highlight);
 }
 
 .spinner-container {
