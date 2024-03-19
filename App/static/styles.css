@@ -32,11 +32,17 @@ main {
 }
 
 h1 {
+    font-size: 32px;
     color: var(--spotify-green);
+}
 
+h2 {
+    font-size: 24px;
+    color: var(--font-bright);
 }
 
 h3 {
+    font-size: 18px;
     color: var(--font-dark);
     margin-top: 0;
     margin-bottom: 50px;
@@ -106,6 +112,7 @@ input:disabled {
 }
 
 .button {
+    font-size: 14px;
     background-color: var(--mid-background);
     color: var(--font-bright);
     border: none;
