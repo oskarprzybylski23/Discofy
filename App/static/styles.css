@@ -60,7 +60,7 @@ footer {
     height: 35px;
     bottom: 0;
     position: absolute;
-    font-size: 0.8rem;
+    font-size: 14px;
 }
 
 footer div span {
@@ -70,7 +70,7 @@ footer div span {
 }
 
 .icon {
-    height: 0.8rem;
+    height: 16px;
     vertical-align: middle;
     filter: invert(100%);
 }
@@ -186,7 +186,7 @@ input:disabled {
 
 .user-info {
     text-align: left;
-    font-size: 0.8rem;
+    font-size: 14px;
     visibility: hidden;
 }
 
