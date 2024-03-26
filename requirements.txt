@@ -16,7 +16,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via flask
-discogs-client==2.3.0
+# discogs-client==2.3.0 #commented out due to issues installing version 2.7 which is installed manually during deployment
     # via -r requirements.in
 flask==3.0.2
     # via
