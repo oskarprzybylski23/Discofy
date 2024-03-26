@@ -45,7 +45,6 @@ def import_library():
 
     username = me.username
     user_url = me.url
-    print(me.url)
     folders = me.collection_folders
     
     library = []
@@ -61,6 +60,19 @@ def import_library():
         },
         'library': library
     }
+
+     # temporary log for debugging due to issues with 429 errors (too many requests).
+    fetcher = discogs_client.fetchers.RequestsFetcher()
+
+    method = 'GET'
+    url = 'https://api.discogs.com/YOUR_ENDPOINT_HERE'
+    content, status_code = fetcher.fetch(None, method, url)
+
+    rate_limit = fetcher.rate_limit
+    rate_limit_used = fetcher.rate_limit_used
+    rate_limit_remaining = fetcher.rate_limit_remaining
+
+    print(f"Rate Limit: {rate_limit}, Used: {rate_limit_used}, Remaining: {rate_limit_remaining}")
     
     return response
 
@@ -73,6 +85,7 @@ def import_collection(folder_id=0):
 
     selected_folder = me.collection_folders[folder_id]
 
+    
     for index, item in enumerate(selected_folder.releases, start=1):
     
         album = item.release
@@ -81,8 +94,19 @@ def import_collection(folder_id=0):
                    'year': album.year, 'discogs_id': album.id, 'cover': album.thumb, 'url': album.url}
         collection.append(release)
 
-        # temporary for debugging due to issues with 429 errors (too many requests).
         print(f'request ${index}:{album.title}')
+        # temporary log for debugging due to issues with 429 errors (too many requests).
+        fetcher = discogs_client.fetchers.RequestsFetcher()
+
+        method = 'GET'
+        url = 'https://api.discogs.com/YOUR_ENDPOINT_HERE'
+        content, status_code = fetcher.fetch(None, method, url)
+
+        rate_limit = fetcher.rate_limit
+        rate_limit_used = fetcher.rate_limit_used
+        rate_limit_remaining = fetcher.rate_limit_remaining
+
+        print(f"Rate Limit: {rate_limit}, Used: {rate_limit_used}, Remaining: {rate_limit_remaining}")
         # time.sleep(1.5)
 
     export_to_json(collection)
