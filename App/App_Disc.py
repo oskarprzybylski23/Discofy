@@ -26,7 +26,7 @@ def initialize_discogs_client():
         return None
     
     d = discogs_client.Client(
-        'discofy/0.1',
+        'discofy/0.1 +discofy.onrender.com',
         consumer_key=consumer_key,
         consumer_secret=consumer_secret,
         token=access_token,
@@ -37,6 +37,7 @@ def initialize_discogs_client():
         return
 
     me = d.identity()
+    print(me.username)
 
     return me
 
@@ -61,18 +62,18 @@ def import_library():
         'library': library
     }
 
-     # temporary log for debugging due to issues with 429 errors (too many requests).
-    fetcher = discogs_client.fetchers.RequestsFetcher()
+    # temporary log for debugging due to issues with 429 errors (too many requests).
+    # fetcher = discogs_client.fetchers.RequestsFetcher()
 
-    method = 'GET'
-    url = 'https://api.discogs.com/YOUR_ENDPOINT_HERE'
-    content, status_code = fetcher.fetch(None, method, url)
+    # method = 'GET'
+    # url = 'https://api.discogs.com/YOUR_ENDPOINT_HERE'
+    # content, status_code = fetcher.fetch(None, method, url)
 
-    rate_limit = fetcher.rate_limit
-    rate_limit_used = fetcher.rate_limit_used
-    rate_limit_remaining = fetcher.rate_limit_remaining
+    # rate_limit = fetcher.rate_limit
+    # rate_limit_used = fetcher.rate_limit_used
+    # rate_limit_remaining = fetcher.rate_limit_remaining
 
-    print(f"Rate Limit: {rate_limit}, Used: {rate_limit_used}, Remaining: {rate_limit_remaining}")
+    # print(f"Rate Limit: {rate_limit}, Used: {rate_limit_used}, Remaining: {rate_limit_remaining}")
     
     return response
 
@@ -96,18 +97,17 @@ def import_collection(folder_id=0):
 
         print(f'request ${index}:{album.title}')
         # temporary log for debugging due to issues with 429 errors (too many requests).
-        fetcher = discogs_client.fetchers.RequestsFetcher()
+        # fetcher = discogs_client.fetchers.RequestsFetcher()
 
-        method = 'GET'
-        url = 'https://api.discogs.com/YOUR_ENDPOINT_HERE'
-        content, status_code = fetcher.fetch(None, method, url)
+        # method = 'GET'
+        # url = 'https://api.discogs.com/YOUR_ENDPOINT_HERE'
+        # content, status_code = fetcher.fetch(None, method, url)
 
-        rate_limit = fetcher.rate_limit
-        rate_limit_used = fetcher.rate_limit_used
-        rate_limit_remaining = fetcher.rate_limit_remaining
+        # rate_limit = fetcher.rate_limit
+        # rate_limit_used = fetcher.rate_limit_used
+        # rate_limit_remaining = fetcher.rate_limit_remaining
 
-        print(f"Rate Limit: {rate_limit}, Used: {rate_limit_used}, Remaining: {rate_limit_remaining}")
-        # time.sleep(1.5)
+        # print(f"Rate Limit: {rate_limit}, Used: {rate_limit_used}, Remaining: {rate_limit_remaining}")
 
     export_to_json(collection)
     export_to_csv(collection)
