@@ -352,6 +352,10 @@ function logoutUser() {
 
         // Clear library and playlist list
         clearLibraryAndPlaylistLists();
+
+        // Clear playlist name input
+        const inputField = document.getElementById('playlist-name');
+        inputField.value = '';
       }
     })
     .catch((error) => console.error('Error logging out:', error));
