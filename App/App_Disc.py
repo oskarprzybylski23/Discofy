@@ -63,27 +63,27 @@ def import_library(discogs_access_token, discogs_access_token_secret):
 
 
 def import_collection(discogs_access_token, discogs_access_token_secret, folder_id=0):
-
     me = initialize_discogs_client(
         discogs_access_token, discogs_access_token_secret)
 
-    # Create a list of records in the collection with position information
     collection = []
-
     selected_folder = me.collection_folders[folder_id]
 
     for index, item in enumerate(selected_folder.releases, start=1):
+        artist = item.data.get('basic_information').get(
+            'artists')[0].get('name')
+        title = item.data.get('basic_information').get('title')
+        year = item.data.get('basic_information').get('year')
+        id = item.data.get('id')
+        thumb = item.data.get('basic_information').get('thumb')
+        url = item.data.get('basic_information').get('uri')
 
-        album = item.release
-        artist = album.artists[0].name
-        # Remove any trailing bracketed numbers in the artist name like "Beatles (7)"
         artist_sanitised = re.sub(r'\s*\(\d+\)$', '', artist.strip())
 
-        release = {'index': index, 'artist': artist_sanitised, 'title': album.title,
-                   'year': album.year, 'discogs_id': album.id, 'cover': album.thumb, 'url': album.url}
-        collection.append(release)
+        release = {'index': index, 'artist': artist_sanitised, 'title': title,
+                   'year': year, 'discogs_id': id, 'cover': thumb, 'url': url}
 
-        print(f'request ${index}:{album.title}')
+        collection.append(release)
 
     return collection
 
