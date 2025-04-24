@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from flask import session
 import time
+import re
 
 load_dotenv()
 
@@ -74,8 +75,11 @@ def import_collection(discogs_access_token, discogs_access_token_secret, folder_
     for index, item in enumerate(selected_folder.releases, start=1):
 
         album = item.release
+        artist = album.artists[0].name
+        # Remove any trailing bracketed numbers in the artist name like "Beatles (7)"
+        artist_sanitised = re.sub(r'\s*\(\d+\)$', '', artist.strip())
 
-        release = {'index': index, 'artist': album.artists[0].name, 'title': album.title,
+        release = {'index': index, 'artist': artist_sanitised, 'title': album.title,
                    'year': album.year, 'discogs_id': album.id, 'cover': album.thumb, 'url': album.url}
         collection.append(release)
 
