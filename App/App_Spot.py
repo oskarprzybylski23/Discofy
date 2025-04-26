@@ -10,18 +10,6 @@ import re
 load_dotenv()
 
 
-def read_collection_data(file_path):
-    with open(file_path, 'r') as json_file:
-        collection_data = json.load(json_file)
-    return collection_data
-
-
-def read_playlist_data(file_path):
-    with open(file_path, 'r') as json_file:
-        playlist_data = json.load(json_file)
-    return playlist_data
-
-
 def search_spotify_albums(access_token, search_query, limit=1):
     """
     Search Spotify for albums using the given query string.
@@ -165,60 +153,6 @@ def create_playlist(playlist_items, name, access_token):
     except Exception as e:
         print(f"Error creating playlist: {e}")
         return False
-
-
-def save_export_data_to_json(playlist, filename="export_data.json"):
-    app_folder = os.path.dirname(os.path.abspath(__file__))
-    filepath = os.path.join(app_folder, filename)
-
-    with open(filepath, 'w') as json_file:
-        json.dump(playlist, json_file, indent=2)
-
-
-def create_report(albums_data, number_of_tracks, name_of_playlist, playlist_url):
-    successful_items = [album for album in albums_data if album['found']]
-    failed_items = [album for album in albums_data if not album['found']]
-
-    # Format: Year-Month-Day Hour:Minute:Second
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    app_name = "Discofy"
-    github_link = "https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator"
-
-    with open('export_report.txt', 'w') as f:
-        # Header with general information
-        f.write(
-            f"Export Report - {app_name}\n"
-            f"Export Time: {current_time}\n"
-            f"Link to Playlist: {playlist_url}\n"
-            f"\n{number_of_tracks} tracks from {len(successful_items)} albums added to playlist '{name_of_playlist}'" + "\n\n"
-        )
-
-        # Section for successfully added albums
-        if successful_items:
-            f.write(f"Albums exported successfully:\n")
-            for item in successful_items:
-                f.write(f"\n{item['artist']} - {item['title']}")
-
-        # Spacer between sections
-        f.write("\n\n")
-
-        # Section for albums that failed to export
-        if failed_items:
-            f.write(
-                f"{len(failed_items)} albums failed to export or could not be found:\n")
-            for item in failed_items:
-                f.write(f"\n{item['artist']} - {item['title']}")
-
-            # Spacer between sections
-            f.write("\n\n")
-
-            f.write(
-                "Album export may have failed due to album not being available in Spotify or artist/album name not matching between the platforms. You can try manually searching for these albums in the Spotify catalog,"
-            )
-
-        f.write(
-            f"Thank you for using Discofy, if you want to explore the project, contribute or raise an issue: please visit the project repository: {github_link}\n\n"
-        )
 
 
 def sanitize(text):

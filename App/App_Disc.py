@@ -86,29 +86,3 @@ def import_collection(discogs_access_token, discogs_access_token_secret, folder_
         collection.append(release)
 
     return collection
-
-
-def export_to_json(collection, filename="import_data.json"):
-    app_folder = os.path.dirname(os.path.abspath(__file__))
-    filepath = os.path.join(app_folder, filename)
-
-    with open(filepath, 'w') as json_file:
-        json.dump(collection, json_file, indent=2)
-
-
-def export_to_csv(list, filename="discogs_collection.csv"):
-    #   Append data to csv
-    filename = filename
-    f = open(filename, 'w+')
-    f.close
-
-    try:
-        for index, item in enumerate(list):
-            with open(filename, 'a', newline='') as f:
-                w = csv.writer(f)
-                w.writerow(list[index].values())
-
-        f.close
-
-    except:
-        pass

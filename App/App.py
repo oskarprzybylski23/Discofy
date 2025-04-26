@@ -80,6 +80,7 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 
 @app.route('/')
+# TODO: change displayed content
 def index():
     api_url = os.getenv('DOMAIN_URL', 'http://127.0.0.1:5000')
     return render_template('index.html', api_url=api_url)
@@ -328,6 +329,7 @@ def get_spotify_auth_url():
         'created_at': time.time()
     }
 
+    # TODO: check token caching
     oauth_object = SpotifyOAuth(
         client_id=client_id,
         client_secret=client_secret,
@@ -342,18 +344,6 @@ def get_spotify_auth_url():
     print(f'response data: {response_data}')
 
     return jsonify(response_data)
-
-
-# def exchange_code_for_token(auth_code):
-#     oauth_object = SpotifyOAuth(
-#         client_id=client_id,
-#         client_secret=client_secret,
-#         redirect_uri=spotify_redirect_uri,
-#         scope=scope,
-#         cache_path=".token_cache"
-#     )
-#     token_info = oauth_object.get_access_token(code=auth_code)
-#     return token_info
 
 
 def check_discogs_access_token_expiry():
@@ -382,12 +372,6 @@ def refresh_discogs_access_token():
     session['tokens'] = token_info
 
     return token_info
-
-
-# @app.route('/login')
-# def login():
-#     auth_url = f"{SPOTIFY_AUTH_URL}?client_id={client_id}&response_type=code&redirect_uri={spotify_redirect_uri}&scope=playlist-modify-private"
-#     return redirect(auth_url)
 
 
 @app.route('/spotify_callback')
@@ -462,6 +446,7 @@ def check_spotify_authorization():
 
 
 @app.route('/logout')
+# WIP - not implemented
 def logout():
     # Clear the stored access token and secret from the session
     session.pop('discogs_access_token', None)
