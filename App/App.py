@@ -16,14 +16,31 @@ from flask_cors import CORS
 from flask_cors import cross_origin
 import uuid
 import json
+from flask_session import Session
+import redis
+from datetime import timedelta
 
+
+app = Flask(__name__)
 load_dotenv()
 
 # TODO: rename routes more logically and reference discogs or spotify to clarity, also in variable names
-ALLOWED_ORIGINS = json.loads(os.getenv("ALLOWED_ORIGINS", "[]"))
 
-app = Flask(__name__)
+
+# Redis session configuration
+redis_client = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
+app.config["SESSION_TYPE"] = "redis"
+app.config["SESSION_REDIS"] = redis.from_url(
+    os.getenv("REDIS_URL", "redis://localhost:6379"))
+app.config["SESSION_PERMANENT"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
+    days=3)  # Adjust session expiry as needed
+app.config["SESSION_USE_SIGNER"] = True  # Encrypted session cookie
+app.config["SESSION_KEY_PREFIX"] = "discofy:"  # Redis key prefix
+Session(app)
+
 sslify = SSLify(app)
+ALLOWED_ORIGINS = json.loads(os.getenv("ALLOWED_ORIGINS", "[]"))
 CORS(app, supports_credentials=True, origins=ALLOWED_ORIGINS)
 
 csp = {
@@ -94,7 +111,15 @@ def get_library():
     if not state:
         return jsonify({"error": "Missing state parameter"}), 400
 
-    session_data = auth_sessions.get(state)
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{state}"
+    session_data = redis_client.get(session_key)
+
+    if not session_data:
+        return jsonify({"error": "Unauthorized or expired session"}), 401
+
+    session_data = json.loads(session_data)
+    # session_data = auth_sessions.get(state)
     if not session_data or 'discogs_access_token' not in session_data or 'discogs_access_token_secret' not in session_data:
         return jsonify({"error": "Unauthorized or expired session"}), 401
 
@@ -122,7 +147,15 @@ def get_collection():
     if not folder_id:
         return jsonify({"error": "Missing folder parameter"}), 400
 
-    session_data = auth_sessions.get(state)
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{state}"
+    session_data = redis_client.get(session_key)
+
+    if not session_data:
+        return jsonify({"error": "Unauthorized or expired session"}), 401
+
+    session_data = json.loads(session_data)
+
     if not session_data or 'discogs_access_token' not in session_data or 'discogs_access_token_secret' not in session_data:
         return jsonify({"error": "Unauthorized or expired session"}), 401
 
@@ -148,13 +181,19 @@ def handle_transfer_to_spotify():
     if not spotify_state or not collection_items:
         return "Error: Missing state or collection items.", 400
 
-    access_token = auth_sessions[spotify_state].get(
-        'spotify_tokens').get('access_token')
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{spotify_state}"
+    session_data = redis_client.get(session_key)
 
-    if not access_token:
-        return "Error: Missing access token.", 400
+    if not session_data:
+        return jsonify({"error": "Unauthorized or expired session"}), 401
 
-    # check_discogs_access_token_expiry()
+    session_data = json.loads(session_data)
+    if 'spotify_tokens' not in session_data or 'access_token' not in session_data.get('spotify_tokens', {}):
+        return jsonify({"error": "Unauthorized or incomplete Spotify session"}), 401
+
+    access_token = session_data['spotify_tokens']['access_token']
+
     try:
         output = App_Spot.transfer_from_discogs(collection_items, access_token)
         return jsonify(output)
@@ -166,8 +205,6 @@ def handle_transfer_to_spotify():
 @app.route('/create_playlist', methods=['POST'])
 @cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
 def handle_create_playlist():
-    # check_discogs_access_token_expiry()
-
     print('CREATING PLAYLIST')
     data = request.get_json()
     spotify_state = data.get('state')
@@ -180,8 +217,20 @@ def handle_create_playlist():
     if not spotify_state or not playlist_items:
         return "Error: Missing state or playlist items.", 400
     print('STEP 2')
-    access_token = auth_sessions[spotify_state].get(
-        'spotify_tokens').get('access_token')
+
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{spotify_state}"
+    session_data = redis_client.get(session_key)
+
+    if not session_data:
+        return jsonify({"error": "Unauthorized or expired session"}), 401
+
+    session_data = json.loads(session_data)
+
+    if 'spotify_tokens' not in session_data or 'access_token' not in session_data.get('spotify_tokens', {}):
+        return jsonify({"error": "Unauthorized or incomplete Spotify session"}), 401
+
+    access_token = session_data['spotify_tokens']['access_token']
 
     if not access_token:
         return "Error: Missing access token.", 400
@@ -209,8 +258,6 @@ def see_report():
 
 @app.route('/authorize_discogs', methods=['POST'])
 def authorize_discogs():
-    print('Authorizing Discogs...')
-
     # Generate a unique state identifier
     discogs_state = str(uuid.uuid4())  # Unique state per request
     print(f"Generated state: {discogs_state}")
@@ -224,12 +271,20 @@ def authorize_discogs():
 
     token, secret, url = d.get_authorize_url(callback_url=callback_with_state)
 
-    # Save the temporary request token and secret in the user's session
-    auth_sessions[discogs_state] = {
+    # Create session data
+    session_data = {
         'request_token': token,
         'request_token_secret': secret,
         'created_at': time.time()
     }
+
+    # Store in Redis with the state as part of the key
+    session_key = f"discofy:state:{discogs_state}"
+    redis_client.setex(
+        session_key,
+        app.config["PERMANENT_SESSION_LIFETIME"],
+        json.dumps(session_data)
+    )
 
     response_data = {"authorize_url": url, "state": discogs_state}
 
@@ -240,20 +295,24 @@ def authorize_discogs():
 
 @app.route('/oauth_callback')
 def oauth_callback():
-    print('handling discogs callback...')
     discogs_state = request.args.get('state')
-    session_data = auth_sessions.get(discogs_state)
-    print(f'state: {discogs_state}')
 
-    if not session_data:
-        print(' no session data')
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{discogs_state}"
+    session_data_str = redis_client.get(session_key)
+
+    if not session_data_str:
+        print('no session data')
         return 'Invalid or expired session state.', 400
+
+    session_data = json.loads(session_data_str)
 
     # Retrieve the temporary request token and secret from callback url
     request_token = request.args.get('oauth_token')
     oauth_verifier = request.args.get('oauth_verifier')
 
     request_token_secret = session_data.get('request_token_secret')
+    print(f"request token secret: {request_token_secret}")
 
     d = discogs_client.Client(
         'discofy/0.1 +discofy.onrender.com',
@@ -270,16 +329,23 @@ def oauth_callback():
             oauth_verifier)
 
         # For now, storing it in `auth_sessions` just for the example
-        auth_sessions[discogs_state]['discogs_access_token'] = discogs_access_token
-        auth_sessions[discogs_state]['discogs_access_token_secret'] = discogs_access_token_secret
+        session_data['discogs_access_token'] = discogs_access_token
+        session_data['discogs_access_token_secret'] = discogs_access_token_secret
 
         print(f"auth_sessions: {auth_sessions}")
 
-        # Optionally, you can clear the request token and secret (no longer needed)
-        auth_sessions[discogs_state].pop('request_token', None)
-        auth_sessions[discogs_state].pop('request_token_secret', None)
+        # Clear the request token and secret (no longer needed)
+        session_data.pop('request_token', None)
+        session_data.pop('request_token_secret', None)
 
-        print(f"auth_sessions: {auth_sessions}")
+        # Update in Redis
+        redis_client.setex(
+            session_key,
+            app.config["PERMANENT_SESSION_LIFETIME"],
+            json.dumps(session_data)
+        )
+
+        print(f"session_data update: {session_data}")
 
         return redirect(url_for('authorized_success'))
     except Exception as e:
@@ -294,8 +360,18 @@ def check_authorization():
     if not discogs_state:
         return jsonify({'authorized': False, 'error': 'Missing state parameter'}), 400
 
-    session_data = auth_sessions.get(discogs_state)
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{discogs_state}"
+    session_data_str = redis_client.get(session_key)
+
+    if not session_data_str:
+        print('no session data')
+        return jsonify({'authorized': False})
+
+    session_data = json.loads(session_data_str)
     print(f'session_data: {session_data}')
+
+    # session_data = auth_sessions.get(discogs_state)
     if session_data and 'discogs_access_token' in session_data and 'discogs_access_token_secret' in session_data:
         return jsonify({'authorized': True})
     else:
@@ -311,7 +387,7 @@ def authorized_success():
         <body>
             <script>
                 window.opener.postMessage(
-                    'authorizationComplete', 'https://discofy.vercel.app'); // change url to match preferred frontend
+                    'authorizationComplete', 'http://localhost:5173/'); // change url to match preferred frontend
             </script>
             Authorization successful! You can now close this window if it doesn't close automatically.
         </body>
@@ -326,10 +402,18 @@ def get_spotify_auth_url():
     spotify_state = str(uuid.uuid4())  # Unique state per request
     print(f"Generated state: {spotify_state}")
 
-    # Store the state in auth_sessions
-    auth_sessions[spotify_state] = {
+    # Create session data
+    session_data = {
         'created_at': time.time()
     }
+
+    # Store in Redis with the state as part of the key
+    session_key = f"discofy:state:{spotify_state}"
+    redis_client.setex(
+        session_key,
+        app.config["PERMANENT_SESSION_LIFETIME"],
+        json.dumps(session_data)
+    )
 
     # TODO: check token caching
     oauth_object = SpotifyOAuth(
@@ -348,47 +432,89 @@ def get_spotify_auth_url():
     return jsonify(response_data)
 
 
-def check_discogs_access_token_expiry():
-    if 'tokens' not in session:
-        return  # Token not in session, handle to enable login
+def check_spotify_token_expiry(session_data):
+    """Check if the Spotify token is expired and refresh if needed"""
+    if 'spotify_tokens' not in session_data:
+        return session_data
+
     current_time = int(time.time())
     # Check if the token expires in the next 60 seconds
-    if session['tokens']['expires_at'] - current_time < 60:
-        refresh_discogs_access_token()
+    if session_data['spotify_tokens'].get('expires_at', 0) - current_time < 60:
+        try:
+            # Refreshing the token
+            refresh_token = session_data['spotify_tokens']['refresh_token']
+
+            # If we have a refresh token, refresh the access token
+            token_data = {
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token,
+                'client_id': client_id,
+                'client_secret': client_secret,
+            }
+
+            response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
+            new_token_info = response.json()
+
+            # Add expiration time
+            new_token_info['expires_at'] = int(
+                time.time()) + new_token_info['expires_in']
+
+            # Make sure we keep the refresh token if it's not included in the new response
+            if 'refresh_token' not in new_token_info:
+                new_token_info['refresh_token'] = refresh_token
+
+            # Update session with new tokens
+            session_data['spotify_tokens'] = new_token_info
+        except Exception as e:
+            print(f"Error refreshing token: {e}")
+
+    return session_data
 
 
-def refresh_discogs_access_token():
-    oauth_object = SpotifyOAuth(
-        client_id=client_id,
-        client_secret=client_secret,
-        redirect_uri=spotify_redirect_uri,
-        scope=scope,
-        cache_path=".token_cache"
-    )
+# def check_discogs_access_token_expiry():
+#     if 'tokens' not in session:
+#         return  # Token not in session, handle to enable login
+#     current_time = int(time.time())
+#     # Check if the token expires in the next 60 seconds
+#     if session['tokens']['expires_at'] - current_time < 60:
+#         refresh_discogs_access_token()
 
-    # Refreshing the token
-    token_info = oauth_object.refresh_discogs_access_token(
-        session['tokens']['refresh_token'])
 
-    # Update the session with the new token
-    session['tokens'] = token_info
+# def refresh_discogs_access_token():
+#     oauth_object = SpotifyOAuth(
+#         client_id=client_id,
+#         client_secret=client_secret,
+#         redirect_uri=spotify_redirect_uri,
+#         scope=scope,
+#         cache_path=".token_cache"
+#     )
 
-    return token_info
+#     # Refreshing the token
+#     token_info = oauth_object.refresh_discogs_access_token(
+#         session['tokens']['refresh_token'])
+
+#     # Update the session with the new token
+#     session['tokens'] = token_info
+
+#     return token_info
 
 
 @app.route('/spotify_callback')
 def spotify_callback():
-
     spotify_state = request.args.get('state')
     auth_code = request.args.get('code')
 
     if not auth_code or not spotify_state:
         return "Error: Missing authorization code or state.", 400
 
-    # Check if this state exists
-    session_data = auth_sessions.get(spotify_state)
-    if not session_data:
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{spotify_state}"
+    session_data_str = redis_client.get(session_key)
+
+    if not session_data_str:
         return "Invalid or expired state. Please try again.", 400
+
+    session_data = json.loads(session_data_str)
 
     try:
         # Exchange the auth code for an access token
@@ -403,11 +529,18 @@ def spotify_callback():
         response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
         token_info = response.json()
         # add expiration time
-        token_info['expires_at'] = int(time.time()) + token_info['expires_in']
+        token_info['expires_at'] = int(
+            time.time()) + token_info['expires_in']
 
-        # Save the token info in the session map
-        auth_sessions[spotify_state].update({'spotify_tokens': token_info})
-        print(auth_sessions)
+        # Update session data with Spotify tokens
+        session_data['spotify_tokens'] = token_info
+
+        # Update in Redis
+        redis_client.setex(
+            session_key,
+            app.config["PERMANENT_SESSION_LIFETIME"],
+            json.dumps(session_data)
+        )
 
         return redirect(url_for('authorized_success'))
     except Exception as e:
@@ -417,31 +550,47 @@ def spotify_callback():
 @app.route('/check_spotify_authorization', methods=['GET'])
 @cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
 def check_spotify_authorization():
-    # Check if token information is present and if the access token is still valid
-    print(f'checking Spotify authorization...')
+    """ Check if token information is present and if the access token is still valid """
     spotify_state = request.args.get('state')
-    print(f'state: {spotify_state}')
 
     if not spotify_state:
         return jsonify({'authorized': False, 'error': 'Missing state parameter'}), 400
 
-    session_data = auth_sessions.get(spotify_state)
+    # Get the redis session with the state key
+    session_key = f"discofy:state:{spotify_state}"
+    session_data_str = redis_client.get(session_key)
+
+    if not session_data_str:
+        return jsonify({'authorized': False})
+
+    session_data = json.loads(session_data_str)
+
+    # Check if token needs refresh and refresh if needed
+    session_data = check_spotify_token_expiry(session_data)
+
+    # Update session in Redis with possibly refreshed token
+    redis_client.setex(
+        session_key,
+        app.config["PERMANENT_SESSION_LIFETIME"],
+        json.dumps(session_data)
+    )
 
     if session_data and 'spotify_tokens' in session_data and session_data['spotify_tokens'].get('expires_at', 0) > time.time():
-
-        print(f'Session data present: {session_data}...')
 
         spotify_access_token = session_data['spotify_tokens'].get(
             'access_token')
 
         # Extract the username (Spotify user ID) from the user profile
-        spotify = spotipy.Spotify(
-            auth=spotify_access_token)
-        user_profile = spotify.current_user()
-        username = user_profile['id']
-        user_url = user_profile['external_urls']['spotify']
+        try:
+            spotify = spotipy.Spotify(auth=spotify_access_token)
+            user_profile = spotify.current_user()
+            username = user_profile['id']
+            user_url = user_profile['external_urls']['spotify']
 
-        return jsonify({'authorized': True, 'username': username, 'url': user_url})
+            return jsonify({'authorized': True, 'username': username, 'url': user_url})
+        except Exception as e:
+            print(f"Error getting Spotify user profile: {e}")
+            return jsonify({'authorized': False, 'error': str(e)})
     else:
         # If the token is expired or not present, consider the user not authorized
         return jsonify({'authorized': False})
@@ -457,6 +606,25 @@ def logout():
     session.pop('tokens', None)
     # Redirect to home page or a logout confirmation page
     return redirect(url_for('index'))
+
+
+def cleanup_expired_sessions():
+    """
+    Function to clean up expired sessions
+    This can be run periodically using a scheduler or cron job
+    """
+    pattern = "discofy:state:*"
+    keys = redis_client.keys(pattern)
+    count = 0
+
+    for key in keys:
+        ttl = redis_client.ttl(key)
+        if ttl <= 0:  # Already expired or no expiry
+            redis_client.delete(key)
+            count += 1
+
+    print(f"Cleaned up {count} expired sessions")
+    return count
 
 
 if __name__ == '__main__':
