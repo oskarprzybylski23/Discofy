@@ -15,14 +15,16 @@ from bleach import clean
 from flask_cors import CORS
 from flask_cors import cross_origin
 import uuid
+import json
 
 load_dotenv()
 
 # TODO: rename routes more logically and reference discogs or spotify to clarity, also in variable names
+ALLOWED_ORIGINS = json.loads(os.getenv("ALLOWED_ORIGINS", "[]"))
 
 app = Flask(__name__)
 sslify = SSLify(app)
-CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+CORS(app, supports_credentials=True, origins=ALLOWED_ORIGINS)
 
 csp = {
     'default-src': [
@@ -137,7 +139,7 @@ def get_collection():
 
 
 @app.route('/transfer_to_spotify', methods=['POST'])
-@cross_origin(origin='http://localhost:5173', supports_credentials=True)
+@cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
 def handle_transfer_to_spotify():
     data = request.get_json()
     spotify_state = data.get('state')
@@ -162,7 +164,7 @@ def handle_transfer_to_spotify():
 
 
 @app.route('/create_playlist', methods=['POST'])
-@cross_origin(origin='http://localhost:5173', supports_credentials=True)
+@cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
 def handle_create_playlist():
     # check_discogs_access_token_expiry()
 
@@ -232,7 +234,7 @@ def authorize_discogs():
     response_data = {"authorize_url": url, "state": discogs_state}
 
     print(f'response data: {response_data}')
-
+    # TODO: Handle errors and return response code
     return jsonify(response_data)
 
 
@@ -309,7 +311,7 @@ def authorized_success():
         <body>
             <script>
                 window.opener.postMessage(
-                    'authorizationComplete', 'http://localhost:5173');
+                    'authorizationComplete', 'https://discofy.vercel.app'); // change url to match preferred frontend
             </script>
             Authorization successful! You can now close this window if it doesn't close automatically.
         </body>
@@ -342,7 +344,7 @@ def get_spotify_auth_url():
     response_data = {"authorize_url": url, "state": spotify_state}
 
     print(f'response data: {response_data}')
-
+    # TODO: Handle errors and return response code
     return jsonify(response_data)
 
 
@@ -413,7 +415,7 @@ def spotify_callback():
 
 
 @app.route('/check_spotify_authorization', methods=['GET'])
-@cross_origin(origin='http://localhost:5173', supports_credentials=True)
+@cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
 def check_spotify_authorization():
     # Check if token information is present and if the access token is still valid
     print(f'checking Spotify authorization...')
