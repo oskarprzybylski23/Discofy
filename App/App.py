@@ -41,7 +41,13 @@ Session(app)
 
 sslify = SSLify(app)
 ALLOWED_ORIGINS = json.loads(os.getenv("ALLOWED_ORIGINS", "[]"))
-CORS(app, supports_credentials=True, origins=ALLOWED_ORIGINS)
+CORS(app,
+     supports_credentials=True,
+     origins=ALLOWED_ORIGINS,
+     expose_headers=['Set-Cookie'],
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+     vary_header=True)
 
 csp = {
     'default-src': [
@@ -74,7 +80,7 @@ app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
 # Prevent JavaScript access to session cookies.
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 # Restrict cookies to first-party or same-site context.
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
 # Flask app environment variables
 app.secret_key = os.environ.get('APP_SECRET_KEY')
@@ -107,13 +113,16 @@ def index():
 
 @app.route('/get_library', methods=['GET'])
 def get_library():
-    state = request.args.get('state')
+    print(f"All cookies: {request.cookies}")
+    state = request.cookies.get('discogs_state')
+    print(f"state: {state}")
     if not state:
-        return jsonify({"error": "Missing state parameter"}), 400
+        return jsonify({"error": "state parameter"}), 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{state}"
     session_data = redis_client.get(session_key)
+    print(f"session data: {session_data}")
 
     if not session_data:
         return jsonify({"error": "Unauthorized or expired session"}), 401
@@ -140,12 +149,13 @@ def get_collection():
     # Get folder id from query parameters, default to 0
     # TODO: Fix - error when loading folder 0 [All]
     folder_id = request.args.get('folder', default=0, type=int)
-    state = request.args.get('state')
+    state = request.cookies.get('discogs_state')
+    print(f"getting collection with cookies: {request.cookies}")
     if not state:
-        return jsonify({"error": "Missing state parameter"}), 400
+        return jsonify({"error": "state parameter"}), 400
 
     if not folder_id:
-        return jsonify({"error": "Missing folder parameter"}), 400
+        return jsonify({"error": "folder parameter"}), 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{state}"
@@ -175,11 +185,11 @@ def get_collection():
 @cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
 def handle_transfer_to_spotify():
     data = request.get_json()
-    spotify_state = data.get('state')
+    spotify_state = request.cookies.get('spotify_state')
     collection_items = data.get('collection')
 
     if not spotify_state or not collection_items:
-        return "Error: Missing state or collection items.", 400
+        return "Error: state or collection items.", 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{spotify_state}"
@@ -207,7 +217,7 @@ def handle_transfer_to_spotify():
 def handle_create_playlist():
     print('CREATING PLAYLIST')
     data = request.get_json()
-    spotify_state = data.get('state')
+    spotify_state = request.cookies.get('spotify_state')
     playlist_items = data.get('playlist')
     playlist_name = data.get('playlist_name')
 
@@ -215,7 +225,7 @@ def handle_create_playlist():
     print(type(playlist_name))
 
     if not spotify_state or not playlist_items:
-        return "Error: Missing state or playlist items.", 400
+        return "Error: state or playlist items.", 400
     print('STEP 2')
 
     # Get the redis session with the state key
@@ -233,7 +243,7 @@ def handle_create_playlist():
     access_token = session_data['spotify_tokens']['access_token']
 
     if not access_token:
-        return "Error: Missing access token.", 400
+        return "Error: access token.", 400
     print('sanitizing name...')
     sanitized_name = clean(playlist_name, tags=[], attributes={}, strip=True)
     # create a playlist and get url returned
@@ -286,16 +296,65 @@ def authorize_discogs():
         json.dumps(session_data)
     )
 
-    response_data = {"authorize_url": url, "state": discogs_state}
-
+    response_data = {"authorize_url": url}
+    response = jsonify(response_data)
+    response.set_cookie(
+        'discogs_state',
+        discogs_state,
+        httponly=False,
+        secure=True,
+        samesite='None',
+        max_age=app.config["PERMANENT_SESSION_LIFETIME"].total_seconds(),
+        domain=None
+    )
+    print(f'Cookie set with state: {discogs_state}')
     print(f'response data: {response_data}')
-    # TODO: Handle errors and return response code
-    return jsonify(response_data)
+    return response
+
+
+# Debug endpoints to check cookies and headers
+@app.route('/check_cookie', methods=['GET'])
+def check_cookie():
+    # Get all cookies
+    all_cookies = request.cookies
+    state = request.cookies.get('discogs_state')
+
+    # Get all headers for debugging
+    headers = dict(request.headers)
+
+    # Print debug info to server console
+    print(f"All cookies: {all_cookies}")
+    print(f"Session state cookie: {state}")
+    print(f"Request headers: {headers}")
+
+    return jsonify({
+        "cookie_exists": state is not None,
+        "state": state,
+        "all_cookies": {k: v for k, v in all_cookies.items()},
+        "headers": headers
+    })
+
+
+@app.route('/set_test_cookie', methods=['GET'])
+def set_test_cookie():
+    """A simple endpoint to test cookie setting"""
+    response = jsonify({"message": "Test cookie set"})
+    response.set_cookie(
+        'test_cookie',
+        'test_value',
+        httponly=False,  # Allow JS access for easier debugging
+        secure=True,
+        samesite='None',
+        path='/'
+    )
+    return response
 
 
 @app.route('/oauth_callback')
 def oauth_callback():
+    # Discogs callback gets state from url parameter passed in /authorize_discogs
     discogs_state = request.args.get('state')
+    print(f"callback state: {discogs_state}")
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{discogs_state}"
@@ -354,11 +413,10 @@ def oauth_callback():
 
 @app.route('/check_authorization', methods=['GET'])
 def check_authorization():
-    print(f'checking authorization...')
-    discogs_state = request.args.get('state')
+    discogs_state = request.cookies.get('discogs_state')
     print(f'state: {discogs_state}')
     if not discogs_state:
-        return jsonify({'authorized': False, 'error': 'Missing state parameter'}), 400
+        return jsonify({'authorized': False, 'error': 'state parameter'}), 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{discogs_state}"
@@ -387,7 +445,7 @@ def authorized_success():
         <body>
             <script>
                 window.opener.postMessage(
-                    'authorizationComplete', 'http://localhost:5173/'); // change url to match preferred frontend
+                    'authorizationComplete', 'https://discofy.vercel.app/'); // change url to match preferred frontend
             </script>
             Authorization successful! You can now close this window if it doesn't close automatically.
         </body>
@@ -425,11 +483,22 @@ def get_spotify_auth_url():
         cache_path=".token_cache"
     )
     url = oauth_object.get_authorize_url()
-    response_data = {"authorize_url": url, "state": spotify_state}
+    response_data = {"authorize_url": url}
+    response = jsonify(response_data)
+    response.set_cookie(
+        'spotify_state',
+        spotify_state,
+        httponly=False,
+        secure=True,
+        samesite='None',
+        max_age=app.config["PERMANENT_SESSION_LIFETIME"].total_seconds(),
+        domain=None
+    )
+    print(f'Cookie set with state: {spotify_state}')
 
     print(f'response data: {response_data}')
     # TODO: Handle errors and return response code
-    return jsonify(response_data)
+    return response
 
 
 def check_spotify_token_expiry(session_data):
@@ -501,11 +570,14 @@ def check_spotify_token_expiry(session_data):
 
 @app.route('/spotify_callback')
 def spotify_callback():
-    spotify_state = request.args.get('state')
+    # Spotify callback receives state from url parameter passed in
+    spotify_state = request.cookies.get('spotify_state')
     auth_code = request.args.get('code')
+    print(f'callback cookies: {request.cookies}')
+    print(f'callback code: {request.args.get("code")}')
 
     if not auth_code or not spotify_state:
-        return "Error: Missing authorization code or state.", 400
+        return "Error: authorization code or state.", 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{spotify_state}"
@@ -551,10 +623,10 @@ def spotify_callback():
 @cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
 def check_spotify_authorization():
     """ Check if token information is present and if the access token is still valid """
-    spotify_state = request.args.get('state')
-
+    spotify_state = request.cookies.get('spotify_state')
+    print(f'auth_status check cookies: {request.cookies}')
     if not spotify_state:
-        return jsonify({'authorized': False, 'error': 'Missing state parameter'}), 400
+        return jsonify({'authorized': False, 'error': 'state parameter'}), 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{spotify_state}"
@@ -576,7 +648,6 @@ def check_spotify_authorization():
     )
 
     if session_data and 'spotify_tokens' in session_data and session_data['spotify_tokens'].get('expires_at', 0) > time.time():
-
         spotify_access_token = session_data['spotify_tokens'].get(
             'access_token')
 
