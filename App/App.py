@@ -1,8 +1,8 @@
 import discogs_client
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, send_file, current_app
 import requests
-import App_Disc
-import App_Spot
+from . import App_Disc
+from . import App_Spot
 from dotenv import load_dotenv
 import os
 from flask import session
@@ -39,7 +39,7 @@ app.config["SESSION_USE_SIGNER"] = True  # Encrypted session cookie
 app.config["SESSION_KEY_PREFIX"] = "discofy:"  # Redis key prefix
 Session(app)
 
-sslify = SSLify(app)
+# sslify = SSLify(app)
 ALLOWED_ORIGINS = json.loads(os.getenv("ALLOWED_ORIGINS", "[]"))
 CORS(app,
      supports_credentials=True,
@@ -74,7 +74,7 @@ csp = {
     ],
 }
 
-talisman = Talisman(app, content_security_policy=csp)
+# talisman = Talisman(app, content_security_policy=csp)
 
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
 # Prevent JavaScript access to session cookies.
@@ -696,7 +696,3 @@ def cleanup_expired_sessions():
 
     print(f"Cleaned up {count} expired sessions")
     return count
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
