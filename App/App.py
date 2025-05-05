@@ -587,6 +587,11 @@ def spotify_callback():
 
         response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
         token_info = response.json()
+
+        if 'error' in token_info:
+            print("Spotify token exchange error:", token_info)
+            return f"Spotify token error: {token_info['error_description']}", 400
+
         # add expiration time
         token_info['expires_at'] = int(
             time.time()) + token_info['expires_in']
