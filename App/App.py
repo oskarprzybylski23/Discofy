@@ -5,7 +5,7 @@ from . import App_Disc
 from . import App_Spot
 from dotenv import load_dotenv
 import os
-from flask import session
+from flask import session, render_template_string
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
@@ -424,20 +424,21 @@ def check_authorization():
 
 
 @app.route('/authorized_success')
+@app.route('/authorized_success')
 def authorized_success():
-    # Render a simple page that includes JavaScript for communication
-    return '''
+    frontend_origin = FRONTEND_URL
+    return render_template_string('''
     <html>
         <head><title>Authorization Successful</title></head>
         <body>
             <script>
                 window.opener.postMessage(
-                    'authorizationComplete', 'https://discofy.vercel.app/'); // change url to match preferred frontend
+                    'authorizationComplete', '{{ frontend_origin }}');
             </script>
             Authorization successful! You can now close this window if it doesn't close automatically.
         </body>
     </html>
-    '''
+    ''', frontend_origin=frontend_origin)
 
 
 @app.route('/spotify_auth_url')
