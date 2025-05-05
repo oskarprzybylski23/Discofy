@@ -24,6 +24,8 @@ from datetime import timedelta
 app = Flask(__name__)
 load_dotenv()
 
+IS_PROD = os.getenv("FLASK_ENV") == "production"
+
 # TODO: rename routes more logically and reference discogs or spotify to clarity, also in variable names
 
 
@@ -39,7 +41,7 @@ app.config["SESSION_USE_SIGNER"] = True  # Encrypted session cookie
 app.config["SESSION_KEY_PREFIX"] = "discofy:"  # Redis key prefix
 Session(app)
 
-# sslify = SSLify(app)
+
 ALLOWED_ORIGINS = json.loads(os.getenv("ALLOWED_ORIGINS", "[]"))
 CORS(app,
      supports_credentials=True,
@@ -49,32 +51,16 @@ CORS(app,
      methods=['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
      vary_header=True)
 
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
 csp = {
-    'default-src': [
-        '\'self\'',
-        'https://discofy.onrender.com',
-    ],
-    'style-src': [
-        '\'self\'',
-        'https://fonts.googleapis.com',
-        '\'unsafe-inline\'',  # Allows inline styles
-    ],
-    'font-src': [
-        '\'self\'',
-        'https://fonts.gstatic.com',
-    ],
-    'img-src': [
-        '\'self\'',
-        'https://i.discogs.com',
-        'https://i.scdn.co'
-    ],
-    'script-src': [
-        '\'self\'',
-        '\'unsafe-inline\'',  # Caution: Allows all inline scripts, use with care
-    ],
+    'default-src': ["'none'"],  # Block all by default
+    'connect-src': ["'self'", FRONTEND_URL],
 }
 
-# talisman = Talisman(app, content_security_policy=csp)
+if IS_PROD:
+    sslify = SSLify(app)
+    talisman = Talisman(app, content_security_policy=csp)
 
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
 # Prevent JavaScript access to session cookies.
@@ -107,8 +93,9 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 @app.route('/')
 # TODO: change displayed content
 def index():
-    api_url = os.getenv('DOMAIN_URL', 'http://127.0.0.1:5000')
-    return render_template('index.html', api_url=api_url)
+    # api_url = os.getenv('DOMAIN_URL', 'http://127.0.0.1:5000')
+    # return render_template('index.html', api_url=api_url)
+    return 'Discofy API'
 
 
 @app.route('/get_library', methods=['GET'])
@@ -696,3 +683,7 @@ def cleanup_expired_sessions():
 
     print(f"Cleaned up {count} expired sessions")
     return count
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
