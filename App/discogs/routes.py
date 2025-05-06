@@ -51,8 +51,8 @@ def get_library():
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 
-@discogs_bp.route('/get_collection', methods=['GET'])
-def get_collection():
+@discogs_bp.route('/get_folder_contents', methods=['GET'])
+def get_folder_contents():
     # Get folder id from query parameters, default to 0
     # TODO: Fix - error when loading folder 0 [All]
     folder_id = request.args.get('folder', default=0, type=int)
@@ -88,8 +88,8 @@ def get_collection():
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 
-@discogs_bp.route('/authorize_discogs', methods=['POST'])
-def authorize_discogs():
+@discogs_bp.route('/get_auth_url', methods=['POST'])
+def get_auth_url():
     # Generate a unique state identifier
     discogs_state = str(uuid.uuid4())  # Unique state per request
     print(f"Generated state: {discogs_state}")
@@ -135,8 +135,8 @@ def authorize_discogs():
     return response
 
 
-@discogs_bp.route('/oauth_callback')
-def oauth_callback():
+@discogs_bp.route('/callback')
+def callback():
     # Discogs callback gets state from url parameter passed in /authorize_discogs
     discogs_state = request.args.get('state')
     print(f"callback state: {discogs_state}")

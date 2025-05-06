@@ -30,9 +30,9 @@ spotify_redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
 scope = 'playlist-modify-public'
 
 
-@spotify_bp.route('/transfer_to_spotify', methods=['POST'])
+@spotify_bp.route('/transfer_collection', methods=['POST'])
 @cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
-def handle_transfer_to_spotify():
+def transfer_collection():
     data = request.get_json()
     spotify_state = request.cookies.get('spotify_state')
     collection_items = data.get('collection')
@@ -104,8 +104,8 @@ def handle_create_playlist():
         return jsonify({"status": "error", "message": "Failed to create playlist.",  "url": None}), 500
 
 
-@spotify_bp.route('/spotify_auth_url')
-def get_spotify_auth_url():
+@spotify_bp.route('/get_auth_url')
+def get_auth_url():
     print('Getting Spotify auth URL...')
     # Generate a unique state identifier
     spotify_state = str(uuid.uuid4())  # Unique state per request
@@ -152,7 +152,7 @@ def get_spotify_auth_url():
     return response
 
 
-def check_spotify_token_expiry(session_data):
+def check_token_expiry(session_data):
     """Check if the Spotify token is expired and refresh if needed"""
     if 'spotify_tokens' not in session_data:
         return session_data
@@ -191,8 +191,8 @@ def check_spotify_token_expiry(session_data):
     return session_data
 
 
-@spotify_bp.route('/spotify_callback')
-def spotify_callback():
+@spotify_bp.route('/callback')
+def callback():
     # Spotify callback receives state from url parameter passed in
     spotify_state = request.cookies.get('spotify_state')
     auth_code = request.args.get('code')
@@ -247,9 +247,9 @@ def spotify_callback():
         return f'Error during Spotify authorization: {e}'
 
 
-@spotify_bp.route('/check_spotify_authorization', methods=['GET'])
+@spotify_bp.route('/check_authorization', methods=['GET'])
 @cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
-def check_spotify_authorization():
+def check_authorization():
     """ Check if token information is present and if the access token is still valid """
     spotify_state = request.cookies.get('spotify_state')
     print(f'auth_status check cookies: {request.cookies}')
@@ -266,7 +266,7 @@ def check_spotify_authorization():
     session_data = json.loads(session_data_str)
 
     # Check if token needs refresh and refresh if needed
-    session_data = check_spotify_token_expiry(session_data)
+    session_data = check_token_expiry(session_data)
 
     # Update session in Redis with possibly refreshed token
     redis_client.setex(
