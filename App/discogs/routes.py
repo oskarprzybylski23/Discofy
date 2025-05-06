@@ -217,3 +217,15 @@ def check_authorization():
         return jsonify({'authorized': True})
     else:
         return jsonify({'authorized': False})
+
+
+@discogs_bp.route('/logout')
+# WIP - not implemented
+def logout():
+    # # Clear the stored access token and secret from the session
+    # session.pop('access_token', None)
+    # session.pop('access_token_secret', None)
+    # session.pop('authorized', None)
+    # session.pop('tokens', None)
+    # # Redirect to home page or a logout confirmation page
+    return redirect(url_for('index'))

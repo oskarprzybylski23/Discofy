@@ -293,3 +293,15 @@ def check_spotify_authorization():
     else:
         # If the token is expired or not present, consider the user not authorized
         return jsonify({'authorized': False})
+
+
+@spotify_bp.route('/logout')
+# WIP - not implemented
+def logout():
+    # # Clear the stored access token and secret from the session
+    # session.pop('access_token', None)
+    # session.pop('access_token_secret', None)
+    # session.pop('authorized', None)
+    # session.pop('tokens', None)
+    # # Redirect to home page or a logout confirmation page
+    return redirect(url_for('index'))

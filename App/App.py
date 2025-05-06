@@ -2,7 +2,7 @@ import os
 import json
 from datetime import timedelta
 
-from flask import Flask, session, redirect, url_for, current_app
+from flask import Flask, current_app
 from dotenv import load_dotenv
 from flask_sslify import SSLify
 from flask_talisman import Talisman
@@ -10,7 +10,6 @@ from flask_cors import CORS
 from flask_session import Session
 import redis
 
-from .extensions import redis_client
 from .spotify import spotify_bp
 from .discogs import discogs_bp
 from .auth import auth_bp
@@ -74,40 +73,8 @@ app.secret_key = os.environ.get('APP_SECRET_KEY')
 
 
 @app.route('/')
-# TODO: change displayed content
 def index():
     return 'Discofy API'
-
-
-@app.route('/logout')
-# WIP - not implemented
-def logout():
-    # Clear the stored access token and secret from the session
-    session.pop('discogs_access_token', None)
-    session.pop('discogs_access_token_secret', None)
-    session.pop('authorized', None)
-    session.pop('tokens', None)
-    # Redirect to home page or a logout confirmation page
-    return redirect(url_for('index'))
-
-
-def cleanup_expired_sessions():
-    """
-    Function to clean up expired sessions
-    This can be run periodically using a scheduler or cron job
-    """
-    pattern = "discofy:state:*"
-    keys = redis_client.keys(pattern)
-    count = 0
-
-    for key in keys:
-        ttl = redis_client.ttl(key)
-        if ttl <= 0:  # Already expired or no expiry
-            redis_client.delete(key)
-            count += 1
-
-    print(f"Cleaned up {count} expired sessions")
-    return count
 
 
 if __name__ == "__main__":
