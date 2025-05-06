@@ -13,9 +13,9 @@ consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
 consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
 
 
-def retrieve_tokens(state):
-    # TODO: This function could get tokens from database once implemented
-    return discogs_access_token, discogs_access_token_secret
+# def retrieve_tokens(state):
+#     # TODO: This function could get tokens from database once implemented
+#     return discogs_access_token, discogs_access_token_secret
 
 
 def initialize_discogs_client(discogs_access_token, discogs_access_token_secret):
