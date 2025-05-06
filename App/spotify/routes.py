@@ -242,7 +242,7 @@ def spotify_callback():
             json.dumps(session_data)
         )
 
-        return redirect(url_for('authorized_success'))
+        return redirect(url_for('auth.success'))
     except Exception as e:
         return f'Error during Spotify authorization: {e}'
 

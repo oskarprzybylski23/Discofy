@@ -2,7 +2,7 @@ import os
 import json
 from datetime import timedelta
 
-from flask import Flask, session, redirect, url_for, current_app, render_template_string
+from flask import Flask, session, redirect, url_for, current_app
 from dotenv import load_dotenv
 from flask_sslify import SSLify
 from flask_talisman import Talisman
@@ -13,6 +13,7 @@ import redis
 from .extensions import redis_client
 from .spotify import spotify_bp
 from .discogs import discogs_bp
+from .auth import auth_bp
 
 
 app = Flask(__name__)
@@ -22,6 +23,7 @@ load_dotenv()
 
 app.register_blueprint(spotify_bp, url_prefix='/spotify')
 app.register_blueprint(discogs_bp, url_prefix='/discogs')
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 IS_PROD = os.getenv("FLASK_ENV") == "production"
 
@@ -74,27 +76,7 @@ app.secret_key = os.environ.get('APP_SECRET_KEY')
 @app.route('/')
 # TODO: change displayed content
 def index():
-    # api_url = os.getenv('DOMAIN_URL', 'http://127.0.0.1:5000')
-    # return render_template('index.html', api_url=api_url)
     return 'Discofy API'
-
-
-@app.route('/authorized_success')
-@app.route('/authorized_success')
-def authorized_success():
-    frontend_origin = FRONTEND_URL
-    return render_template_string('''
-    <html>
-        <head><title>Authorization Successful</title></head>
-        <body>
-            <script>
-                window.opener.postMessage(
-                    'authorizationComplete', '{{ frontend_origin }}');
-            </script>
-            Authorization successful! You can now close this window if it doesn't close automatically.
-        </body>
-    </html>
-    ''', frontend_origin=frontend_origin)
 
 
 @app.route('/logout')

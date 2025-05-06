@@ -189,7 +189,7 @@ def oauth_callback():
 
         print(f"session_data update: {session_data}")
 
-        return redirect(url_for('authorized_success'))
+        return redirect(url_for('auth.success'))
     except Exception as e:
         return f'Error during authorization: {e}'
 
