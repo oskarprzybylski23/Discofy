@@ -1,13 +1,7 @@
-import spotipy
-import json
-from dotenv import load_dotenv
-from flask import session
-import os
-from datetime import datetime
-from rapidfuzz import fuzz
 import re
 
-load_dotenv()
+import spotipy
+from rapidfuzz import fuzz
 
 
 def search_spotify_albums(access_token, search_query, limit=1):

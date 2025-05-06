@@ -12,7 +12,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from bleach import clean
 
-from .. import App_Spot
+from ..services import spotify
 from ..extensions import redis_client
 from . import spotify_bp
 
@@ -54,7 +54,7 @@ def handle_transfer_to_spotify():
     access_token = session_data['spotify_tokens']['access_token']
 
     try:
-        output = App_Spot.transfer_from_discogs(collection_items, access_token)
+        output = spotify.transfer_from_discogs(collection_items, access_token)
         return jsonify(output)
     except Exception as e:
         print(f"Error during collection transfer: {e}")
@@ -96,7 +96,7 @@ def handle_create_playlist():
     print('sanitizing name...')
     sanitized_name = clean(playlist_name, tags=[], attributes={}, strip=True)
     # create a playlist and get url returned
-    playlist_url = App_Spot.create_playlist(
+    playlist_url = spotify.create_playlist(
         playlist_items, sanitized_name, access_token)
     if playlist_url:
         return jsonify({"status": "success", "message": "Playlist created successfully.", "url": playlist_url})

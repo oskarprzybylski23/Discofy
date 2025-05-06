@@ -8,7 +8,7 @@ from flask import jsonify, request, redirect, url_for, current_app
 
 import discogs_client
 
-from .. import App_Disc
+from ..services import discogs
 from ..extensions import redis_client
 from . import discogs_bp
 
@@ -43,7 +43,7 @@ def get_library():
         discogs_access_token = session_data['discogs_access_token']
         discogs_access_token_secret = session_data['discogs_access_token_secret']
 
-        output = App_Disc.import_library(
+        output = discogs.import_library(
             discogs_access_token, discogs_access_token_secret)
         return jsonify(output)
     except Exception as e:
@@ -80,7 +80,7 @@ def get_collection():
         discogs_access_token = session_data['discogs_access_token']
         discogs_access_token_secret = session_data['discogs_access_token_secret']
 
-        output = App_Disc.import_collection(
+        output = discogs.import_collection(
             discogs_access_token, discogs_access_token_secret, folder_id)
         return jsonify(output)
     except Exception as e:

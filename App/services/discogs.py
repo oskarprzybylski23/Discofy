@@ -1,11 +1,8 @@
-import json
-import discogs_client
-import csv
-from dotenv import load_dotenv
 import os
-from flask import session
-import time
 import re
+
+import discogs_client
+from dotenv import load_dotenv
 
 load_dotenv()
 
