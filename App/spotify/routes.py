@@ -240,14 +240,14 @@ def check_authorization():
     spotify_state = request.cookies.get('spotify_state')
     print(f'auth_status check cookies: {request.cookies}')
     if not spotify_state:
-        return jsonify({'authorized': False, 'error': 'state parameter'}), 400
+        return jsonify({'authorized': False, 'message': 'cookie not found'}), 200
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{spotify_state}"
     session_data_str = redis_client.get(session_key)
 
     if not session_data_str:
-        return jsonify({'authorized': False})
+        return jsonify({'authorized': False, 'message': 'session data not found'}), 200
 
     session_data = json.loads(session_data_str)
 
@@ -275,10 +275,10 @@ def check_authorization():
             return jsonify({'authorized': True, 'username': username, 'url': user_url})
         except Exception as e:
             print(f"Error getting Spotify user profile: {e}")
-            return jsonify({'authorized': False, 'error': str(e)})
+            return jsonify({'authorized': False, 'error': str(e)}), 400
     else:
         # If the token is expired or not present, consider the user not authorized
-        return jsonify({'authorized': False})
+        return jsonify({'authorized': False, 'message': 'spotify token expired or not present'}), 200
 
 
 @spotify_bp.route('/logout', methods=['POST'])

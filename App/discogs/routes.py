@@ -194,7 +194,7 @@ def check_authorization():
     discogs_state = request.cookies.get('discogs_state')
     print(f'state: {discogs_state}')
     if not discogs_state:
-        return jsonify({'authorized': False, 'error': 'state parameter'}), 400
+        return jsonify({'authorized': False, 'message': 'cookie not found'}), 200
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{discogs_state}"
