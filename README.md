@@ -1,85 +1,113 @@
-<p align="center">
-  <img src="./App/static/favicon.ico" alt="Discofy Logo" width="100"/>
-</p>
 
-<h1 align="center" style="color: green;">Discofy</h1>
 
-<p align="center">
-Discofy is an application that allows users to create Spotify playlists based on their Discogs collections. This tool retrieves album information from a Discogs collection and creates a Spotify playlist containing tracks from those albums.
-  <br>
-  <br>
-  <strong>API libraries used:</strong>
-  <br>
-  <a href="https://python3-discogs-client.readthedocs.io/en/latest/index.html" target="_blank">View Python Discogs Client Documentation</a>
-  ·
-  <a href="https://spotipy.readthedocs.io/en/2.22.1/" target="_blank">View Spotipy Documentation</a>
-  <br>
-  <br>
-  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues" target="_blank">Report Bug</a>
-  ·
-  <a href="https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator/issues" target="_blank">Request Feature</a>
-</p>
+# Discofy - create Spotify playlists from your Discogs record collection
 
-<div align="center">
-    <a href="https://www.loom.com/share/e11a4cab0b6f43749151b7ffd11d150b">
-      <p> Watch Demo</p>
-    </a>
-    <a href="https://www.loom.com/share/e11a4cab0b6f43749151b7ffd11d150b" target="_blank">
-      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/e11a4cab0b6f43749151b7ffd11d150b-1710866229633-with-play.gif">
-    </a>
-  </div>
+Discofy is a web application that lets users create Spotify playlists from their personal Discogs libraries. This repository contains the Flask backend, which handles authentication, collection retrieval, and playlist creation via the Spotify and Discogs APIs.
+
+> **Frontend:** The React frontend is in a separate repository: [Discofy Frontend](https://github.com/oskarprzybylski23/discofy-frontend)
 
 ---
 
-## 🌟 Features
+## 🏗️ Architecture
+- **Flask** backend (this repo)
+- **React** frontend ([repo link](https://github.com/oskarprzybylski23/discofy-frontend))
+- **Redis** for session management
+- **Spotify & Discogs APIs** for music and collection data
 
-- **Spotify and Discogs Authentication:** Secure OAuth authentication ensures safe access to your Spotify and Discogs data.
-- **Discogs Collection Retrieval:** Easily pull your entire Discogs collection into the app.
-- **Automated Playlist Creation:** Convert your Discogs collections into Spotify playlists with just a few clicks.
-- **Error Handling:** Intelligent error reporting for albums not found on Spotify, ensuring smooth playlist creation.
-
-## 🛠 Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/oskarprzybylski23/Discofy.git
+**Folder structure:**
+```
+.
+├── app/
+│   ├── auth/       # Authentication routes
+│   ├── main/       # Main entry routes
+│   ├── spotify/    # Spotify integration routes
+│   ├── discogs/    # Discogs integration routes
+│   ├── services/   # Business logic
+│   └── extensions.py   # Flask extensions
+├── config.py # Flask configuration and environment parameters
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
+├── docker-compose.yml
+├── Dockerfile
+└── wsgi.py
 ```
 
-2. Navigate to the project directory:
+---
 
-```bash
-cd Discofy
-```
+## ⚙️ Prerequisites
+- Python 3.8+
+- [Redis](https://redis.io/) running locally or accessible remotely
+- Spotify Developer credentials
+- Discogs Developer credentials
+- Docker & Docker Compose
 
-4. Create `.env`, fill in your Spotify and Discogs credentials and other required values:
+---
 
-```bash
-cp .env.example .env
-```
+## 🚀 Local Setup
 
-5. Build and run a container
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/oskarprzybylski23/Discofy.git
+   cd Discofy
+   ```
+2. **Create and fill your `.env` file:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your credentials
+   ```
 
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-```
+3. **Build and run the container:**
+   ```bash
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+   ```
+   ```bash
+   flask run
+   # or
+   python wsgi.py
+   ```
+5. **Access the API:**
 
-## 🚀 Usage
+    default on: http://localhost:5000
 
-After setting up, visit http://localhost:5000 in your web browser to use the app.
+---
 
-## 💡 Contributing
+## 📚 API Endpoints
 
-Here's how you can contribute:
+### Main
+- `GET /` — Health check, returns 'Discofy API'
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a pull request.
+### Auth
+- `GET /success` — OAuth success page (used for popup flow)
+
+### Spotify
+- `GET /spotify/get_auth_url` — Get Spotify OAuth URL
+- `GET /spotify/callback` — Spotify OAuth callback
+- `GET /spotify/check_authorization` — Check Spotify auth status
+- `POST /spotify/transfer_collection` — Transfer Discogs collection to Spotify (body: `{ collection: [...] }`)
+- `POST /spotify/create_playlist` — Create Spotify playlist (body: `{ playlist: [...], playlist_name: "..." }`)
+- `POST /spotify/logout` — Disconnect from Spotify (removes session data)
+
+### Discogs
+- `POST /discogs/get_auth_url` — Get Discogs OAuth URL
+- `GET /discogs/callback` — Discogs OAuth callback
+- `GET /discogs/check_authorization` — Check Discogs auth status
+- `GET /discogs/get_library` — Get user's Discogs library
+- `GET /discogs/get_folder_contents?folder=<id>` — Get contents of a Discogs folder
+- `POST /discogs/logout` — Disconnect from Discogs (removes session data)
+
+---
+
+## 🤝 Contributing
+Contributions are welcome. Feel free to suggest new features or report bugs in [Issues](https://github.com/oskarprzybylski23/Discofy/issues). To contribute a fix or feature:
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`git commit -m 'Add YourFeature'`)
+4. Push to your branch (`git push origin feature/YourFeature`)
+5. Open a pull request
+
+
+---
 
 ## 📝 License
+Distributed under the MIT License. See `LICENSE` for details.
 
-Distributed under the MIT License. See `LICENSE` for more information.
-
-Project Link: https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator
