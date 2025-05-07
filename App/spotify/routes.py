@@ -1,4 +1,3 @@
-import os
 import json
 import uuid
 import time
@@ -16,22 +15,13 @@ from ..services import spotify
 from ..extensions import redis_client
 from . import spotify_bp
 
-ALLOWED_ORIGINS = json.loads(os.getenv("ALLOWED_ORIGINS", "[]"))
-
 # Spotify OAuth URLs
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 
-# Spotify environment variables
-client_id = os.getenv('SPOTIPY_CLIENT_ID')
-client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-spotify_redirect_uri = os.getenv('SPOTIPY_CLIENT_URI')
-scope = 'playlist-modify-public'
-
-
 @spotify_bp.route('/transfer_collection', methods=['POST'])
-@cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
+# @cross_origin(origins=current_app.config.get('ALLOWED_ORIGINS'), supports_credentials=True)
 def transfer_collection():
     data = request.get_json()
     spotify_state = request.cookies.get('spotify_state')
@@ -62,7 +52,7 @@ def transfer_collection():
 
 
 @spotify_bp.route('/create_playlist', methods=['POST'])
-@cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
+# @cross_origin(origins=current_app.config.get('ALLOWED_ORIGINS'), supports_credentials=True)
 def handle_create_playlist():
     print('CREATING PLAYLIST')
     data = request.get_json()
@@ -126,10 +116,10 @@ def get_auth_url():
 
     # TODO: check token caching
     oauth_object = SpotifyOAuth(
-        client_id=client_id,
-        client_secret=client_secret,
-        redirect_uri=spotify_redirect_uri,
-        scope=scope,
+        client_id=current_app.config.get('SPOTIFY_CLIENT_ID'),
+        client_secret=current_app.config.get('SPOTIFY_CLIENT_SECRET'),
+        redirect_uri=current_app.config.get('SPOTIFY_REDIRECT_URI'),
+        scope=current_app.config.get('SPOTIFY_SCOPE'),
         state=spotify_state,
         cache_path=".token_cache"
     )
@@ -168,8 +158,8 @@ def check_token_expiry(session_data):
             token_data = {
                 'grant_type': 'refresh_token',
                 'refresh_token': refresh_token,
-                'client_id': client_id,
-                'client_secret': client_secret,
+                'client_id': current_app.config.get('SPOTIFY_CLIENT_ID'),
+                'client_secret': current_app.config.get('SPOTIFY_CLIENT_SECRET'),
             }
 
             response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
@@ -216,9 +206,9 @@ def callback():
         token_data = {
             'grant_type': 'authorization_code',
             'code': auth_code,
-            'redirect_uri': spotify_redirect_uri,
-            'client_id': client_id,
-            'client_secret': client_secret,
+            'redirect_uri': current_app.config.get('SPOTIFY_REDIRECT_URI'),
+            'client_id': current_app.config.get('SPOTIFY_CLIENT_ID'),
+            'client_secret': current_app.config.get('SPOTIFY_CLIENT_SECRET'),
         }
 
         response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
@@ -248,7 +238,7 @@ def callback():
 
 
 @spotify_bp.route('/check_authorization', methods=['GET'])
-@cross_origin(origins=ALLOWED_ORIGINS, supports_credentials=True)
+# @cross_origin(origins=current_app.config.get('ALLOWED_ORIGINS'), supports_credentials=True)
 def check_authorization():
     """ Check if token information is present and if the access token is still valid """
     spotify_state = request.cookies.get('spotify_state')

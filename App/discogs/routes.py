@@ -1,4 +1,3 @@
-import os
 import json
 import uuid
 import time
@@ -11,11 +10,6 @@ import discogs_client
 from ..services import discogs
 from ..extensions import redis_client
 from . import discogs_bp
-
-# Discogs environment variables
-consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
-consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
-discogs_redirect_uri = os.getenv('DISCOGS_REDIRECT_URI')
 
 
 @discogs_bp.route('/get_library', methods=['GET'])
@@ -95,10 +89,11 @@ def get_auth_url():
     print(f"Generated state: {discogs_state}")
 
     d = discogs_client.Client(
-        'discofy/0.1 +discofy.onrender.com', consumer_key=consumer_key, consumer_secret=consumer_secret
+        'discofy/0.1 +discofy.onrender.com', consumer_key=current_app.config.get('DISCOGS_CONSUMER_KEY'), consumer_secret=current_app.config.get('DISCOGS_CONSUMER_SECRET')
     )
 
     # Manually append state to callback URL
+    discogs_redirect_uri = current_app.config.get('DISCOGS_REDIRECT_URI')
     callback_with_state = f"{discogs_redirect_uri}?state={discogs_state}"
 
     token, secret, url = d.get_authorize_url(callback_url=callback_with_state)
@@ -160,8 +155,8 @@ def callback():
 
     d = discogs_client.Client(
         'discofy/0.1 +discofy.onrender.com',
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret
+        consumer_key=current_app.config.get('DISCOGS_CONSUMER_KEY'),
+        consumer_secret=current_app.config.get('DISCOGS_CONSUMER_SECRET')
     )
 
     # Set the temporary request token and secret to retrieve the access token
