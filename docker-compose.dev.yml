@@ -1,0 +1,12 @@
+services:
+  flask:
+    build: .
+    container_name: flask_discofy
+    ports:
+      - '5000:5000'
+    volumes:
+      - .:/App
+    env_file: .env
+    command: flask run --host=0.0.0.0 --port=5000
+    depends_on:
+      - redis

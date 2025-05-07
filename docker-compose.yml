@@ -1,0 +1,6 @@
+services:
+  redis:
+    image: redislabs/redismod
+    container_name: redis_discofy
+    ports:
+      - '6379:6379'

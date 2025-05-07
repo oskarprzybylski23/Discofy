@@ -1,9 +1,0 @@
-bleach==6.1.0
-discogs_client==2.3.0
-Flask==3.0.2
-flask_sslify==0.1.5
-flask_talisman==1.1.0
-python-dotenv==1.0.1
-Requests==2.31.0
-spotipy==2.23.0
-gunicorn
