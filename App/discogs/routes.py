@@ -214,13 +214,27 @@ def check_authorization():
         return jsonify({'authorized': False})
 
 
-@discogs_bp.route('/logout')
-# WIP - not implemented
+@discogs_bp.route('/logout', methods=['POST'])
 def logout():
-    # # Clear the stored access token and secret from the session
-    # session.pop('access_token', None)
-    # session.pop('access_token_secret', None)
-    # session.pop('authorized', None)
-    # session.pop('tokens', None)
-    # # Redirect to home page or a logout confirmation page
-    return redirect(url_for('index'))
+    discogs_state = request.cookies.get('discogs_state')
+
+    if not discogs_state:
+        return jsonify({"status": "error", "message": "No session found."}), 400
+
+    session_key = f"discofy:state:{discogs_state}"
+    redis_client.delete(session_key)
+
+    response = jsonify(
+        {"status": "success", "message": "Logged out successfully."})
+
+    # Clear the cookie by setting it with an expired max_age
+    response.set_cookie(
+        'discogs_state',
+        '',
+        max_age=0,
+        secure=True,
+        httponly=False,
+        samesite='None'
+    )
+
+    return response
