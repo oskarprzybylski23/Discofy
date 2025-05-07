@@ -10,6 +10,7 @@ from flask_cors import CORS
 from flask_session import Session
 import redis
 
+from .main import main_bp
 from .spotify import spotify_bp
 from .discogs import discogs_bp
 from .auth import auth_bp
@@ -19,7 +20,7 @@ app = Flask(__name__)
 load_dotenv()
 
 # Register blueprints
-
+app.register_blueprint(main_bp)
 app.register_blueprint(spotify_bp, url_prefix='/spotify')
 app.register_blueprint(discogs_bp, url_prefix='/discogs')
 app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -70,11 +71,6 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
 # Flask app environment variables
 app.secret_key = os.environ.get('APP_SECRET_KEY')
-
-
-@app.route('/')
-def index():
-    return 'Discofy API'
 
 
 if __name__ == "__main__":
