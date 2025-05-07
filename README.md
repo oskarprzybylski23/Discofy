@@ -1,5 +1,3 @@
-
-
 # Discofy - create Spotify playlists from your Discogs record collection
 
 Discofy is a web application that lets users create Spotify playlists from their personal Discogs libraries. This repository contains the Flask backend, which handles authentication, collection retrieval, and playlist creation via the Spotify and Discogs APIs.
@@ -9,12 +7,14 @@ Discofy is a web application that lets users create Spotify playlists from their
 ---
 
 ## 🏗️ Architecture
+
 - **Flask** backend (this repo)
 - **React** frontend ([repo link](https://github.com/oskarprzybylski23/discofy-frontend))
 - **Redis** for session management
 - **Spotify & Discogs APIs** for music and collection data
 
 **Folder structure:**
+
 ```
 .
 ├── app/
@@ -35,6 +35,7 @@ Discofy is a web application that lets users create Spotify playlists from their
 ---
 
 ## ⚙️ Prerequisites
+
 - Python 3.8+
 - [Redis](https://redis.io/) running locally or accessible remotely
 - Spotify Developer credentials
@@ -51,6 +52,7 @@ Discofy is a web application that lets users create Spotify playlists from their
    cd Discofy
    ```
 2. **Create and fill your `.env` file:**
+
    ```bash
    cp .env.example .env
    # Edit .env with your credentials
@@ -60,26 +62,24 @@ Discofy is a web application that lets users create Spotify playlists from their
    ```bash
    docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
    ```
-   ```bash
-   flask run
-   # or
-   python wsgi.py
-   ```
-5. **Access the API:**
+4. **Access the API:**
 
-    default on: http://localhost:5000
+   default on: http://localhost:5000
 
 ---
 
 ## 📚 API Endpoints
 
 ### Main
+
 - `GET /` — Health check, returns 'Discofy API'
 
 ### Auth
+
 - `GET /success` — OAuth success page (used for popup flow)
 
 ### Spotify
+
 - `GET /spotify/get_auth_url` — Get Spotify OAuth URL
 - `GET /spotify/callback` — Spotify OAuth callback
 - `GET /spotify/check_authorization` — Check Spotify auth status
@@ -88,6 +88,7 @@ Discofy is a web application that lets users create Spotify playlists from their
 - `POST /spotify/logout` — Disconnect from Spotify (removes session data)
 
 ### Discogs
+
 - `POST /discogs/get_auth_url` — Get Discogs OAuth URL
 - `GET /discogs/callback` — Discogs OAuth callback
 - `GET /discogs/check_authorization` — Check Discogs auth status
@@ -98,16 +99,17 @@ Discofy is a web application that lets users create Spotify playlists from their
 ---
 
 ## 🤝 Contributing
+
 Contributions are welcome. Feel free to suggest new features or report bugs in [Issues](https://github.com/oskarprzybylski23/Discofy/issues). To contribute a fix or feature:
+
 1. Fork the repository
 2. Create a new branch (`git checkout -b feature/YourFeature`)
 3. Commit your changes (`git commit -m 'Add YourFeature'`)
 4. Push to your branch (`git push origin feature/YourFeature`)
 5. Open a pull request
 
-
 ---
 
 ## 📝 License
-Distributed under the MIT License. See `LICENSE` for details.
 
+Distributed under the MIT License. See `LICENSE` for details.
