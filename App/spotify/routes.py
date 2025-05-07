@@ -4,7 +4,6 @@ import time
 from datetime import timedelta
 
 from flask import jsonify, request, redirect, url_for, current_app
-from flask_cors import cross_origin
 
 import requests
 import spotipy
@@ -21,7 +20,6 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 
 @spotify_bp.route('/transfer_collection', methods=['POST'])
-# @cross_origin(origins=current_app.config.get('ALLOWED_ORIGINS'), supports_credentials=True)
 def transfer_collection():
     data = request.get_json()
     spotify_state = request.cookies.get('spotify_state')
@@ -52,7 +50,6 @@ def transfer_collection():
 
 
 @spotify_bp.route('/create_playlist', methods=['POST'])
-# @cross_origin(origins=current_app.config.get('ALLOWED_ORIGINS'), supports_credentials=True)
 def handle_create_playlist():
     print('CREATING PLAYLIST')
     data = request.get_json()
@@ -238,7 +235,6 @@ def callback():
 
 
 @spotify_bp.route('/check_authorization', methods=['GET'])
-# @cross_origin(origins=current_app.config.get('ALLOWED_ORIGINS'), supports_credentials=True)
 def check_authorization():
     """ Check if token information is present and if the access token is still valid """
     spotify_state = request.cookies.get('spotify_state')
