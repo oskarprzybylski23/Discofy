@@ -32,6 +32,7 @@ Discofy is an application that allows users to create Spotify playlists based on
 ---
 
 ## 🌟 Features
+
 - **Spotify and Discogs Authentication:** Secure OAuth authentication ensures safe access to your Spotify and Discogs data.
 - **Discogs Collection Retrieval:** Easily pull your entire Discogs collection into the app.
 - **Automated Playlist Creation:** Convert your Discogs collections into Spotify playlists with just a few clicks.
@@ -41,50 +42,34 @@ Discofy is an application that allows users to create Spotify playlists based on
 
 1. Clone the repository:
 
-```bash 
-git clone https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator.git 
+```bash
+git clone https://github.com/oskarprzybylski23/Discofy.git
 ```
 
 2. Navigate to the project directory:
 
-```bash 
-cd Discogs-Spotify-Playlist-Creator
+```bash
+cd Discofy
 ```
 
-3. Install the required Python packages:
-
-```bash 
-pip install -r requirements.txt
-```
-4. Create `.env` and fill in your Spotify and Discogs credentials:
-
-```text
-SPOTIPY_CLIENT_ID= `your_spotify_client_id`
-SPOTIPY_CLIENT_SECRET= `your_spotify_client_secret`
-SPOTIPY_CLIENT_URI= `your_spotify_redirect_uri`
-DISCOGS_CONSUMER_KEY=`your_discogs_consumer_key`
-DISCOGS_CONSUMER_SECRET=`your_discogs_consumer_secret`
-DISCOGS_REDIRECT_URI='http://127.0.0.1:5000/oauth_callback' //deafult
-APP_SECRET_KEY = `your_app_secret`
-DOMAIN_URL = 'http://127.0.0.1:5000' //deafult
-```
-
-5. start virtualenv
+4. Create `.env`, fill in your Spotify and Discogs credentials and other required values:
 
 ```bash
-source venv/bin/activate 
+cp .env.example .env
 ```
 
-6. start flask server
+5. Build and run a container
 
 ```bash
-python App/App.py 
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
 
 ## 🚀 Usage
+
 After setting up, visit http://localhost:5000 in your web browser to use the app.
 
 ## 💡 Contributing
+
 Here's how you can contribute:
 
 1. Fork the repository.
@@ -94,6 +79,7 @@ Here's how you can contribute:
 5. Open a pull request.
 
 ## 📝 License
+
 Distributed under the MIT License. See `LICENSE` for more information.
 
 Project Link: https://github.com/oskarprzybylski23/Discogs-Spotify-Playlist-Creator
