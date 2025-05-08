@@ -73,7 +73,7 @@ def import_collection(discogs_access_token, discogs_access_token_secret, folder_
         year = item.data.get('basic_information').get('year')
         id = item.data.get('id')
         thumb = item.data.get('basic_information').get('thumb')
-        url = item.data.get('basic_information').get('uri')
+        url = f"https://www.discogs.com/release/{id}"
 
         artist_sanitised = re.sub(r'\s*\(\d+\)$', '', artist.strip())
 
