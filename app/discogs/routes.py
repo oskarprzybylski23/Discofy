@@ -47,16 +47,12 @@ def get_library():
 
 @discogs_bp.route('/get_folder_contents', methods=['GET'])
 def get_folder_contents():
-    # Get folder id from query parameters, default to 0
-    # TODO: Fix - error when loading folder 0 [All]
-    folder_id = request.args.get('folder', default=0, type=int)
+    # Get folder id from query parameters, default to 0 [All records]
+    folder_id = request.args.get('folder', 0, type=int)
     state = request.cookies.get('discogs_state')
     print(f"getting collection with cookies: {request.cookies}")
     if not state:
         return jsonify({"error": "state parameter"}), 400
-
-    if not folder_id:
-        return jsonify({"error": "folder parameter"}), 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{state}"
