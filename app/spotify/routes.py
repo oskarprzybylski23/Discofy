@@ -126,7 +126,7 @@ def get_auth_url():
     response.set_cookie(
         'spotify_state',
         spotify_state,
-        httponly=False,
+        httponly=True,
         secure=True,
         samesite='None',
         max_age=timedelta(days=3).total_seconds(),
@@ -299,8 +299,8 @@ def logout():
         'spotify_state',
         '',
         max_age=0,
+        httponly=True,
         secure=True,
-        httponly=False,
         samesite='None'
     )
 
