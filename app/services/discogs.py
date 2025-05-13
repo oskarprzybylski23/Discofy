@@ -67,19 +67,38 @@ def import_collection(discogs_access_token, discogs_access_token_secret, folder_
     selected_folder = me.collection_folders[folder_id]
 
     for index, item in enumerate(selected_folder.releases, start=1):
-        artist = item.data.get('basic_information').get(
-            'artists')[0].get('name')
-        title = item.data.get('basic_information').get('title')
-        year = item.data.get('basic_information').get('year')
-        id = item.data.get('id')
-        thumb = item.data.get('basic_information').get('thumb')
-        url = f"https://www.discogs.com/release/{id}"
+        basic_info = item.data.get('basic_information', {})
+        formats = basic_info.get('formats', [{}])[0]
 
-        artist_sanitised = re.sub(r'\s*\(\d+\)$', '', artist.strip())
+        artist = [sanitise_string(a.get('name'))
+                  for a in basic_info.get('artists', [])]
+        title = basic_info.get('title')
+        year = basic_info.get('year')
+        discogs_id = basic_info.get('id')
+        thumb = basic_info.get('thumb')
+        format_name = formats.get('name')
+        descriptions = formats.get('descriptions')
+        url = f"https://www.discogs.com/release/{discogs_id}"
 
-        release = {'index': index, 'artist': artist_sanitised, 'title': title,
-                   'year': year, 'discogs_id': id, 'cover': thumb, 'url': url}
+        release = {
+            'index': index,
+            'artists': artist,
+            'title': title,
+            'year': year,
+            'discogs_id': discogs_id,
+            'cover': thumb,
+            'format': format_name,
+            'descriptions': descriptions,
+            'url': url
+        }
 
         collection.append(release)
 
     return collection
+
+
+def sanitise_string(string):
+    """
+    Util function for removing unnecessary characters from string that Discogs adds
+    """
+    return re.sub(r'\s*\(\d+\)$', '', string.strip())
