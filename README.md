@@ -9,8 +9,9 @@ Discofy is a web application that lets users create Spotify playlists from their
 ## 🏗️ Architecture
 
 - **Flask** backend (this repo)
+- **Celery** for background task processing
+- **Redis** for session management and Celery
 - **React** frontend ([repo link](https://github.com/oskarprzybylski23/discofy-frontend))
-- **Redis** for session management
 - **Spotify & Discogs APIs** for music and collection data
 
 **Folder structure:**
@@ -22,7 +23,7 @@ Discofy is a web application that lets users create Spotify playlists from their
 │   ├── main/       # Main entry routes
 │   ├── spotify/    # Spotify integration routes
 │   ├── discogs/    # Discogs integration routes
-│   ├── services/   # Business logic
+│   ├── services/   # Business logic and Celery tasks
 │   └── extensions.py   # Flask extensions
 ├── config.py # Flask configuration and environment parameters
 ├── docker-compose.dev.yml
@@ -58,13 +59,39 @@ Discofy is a web application that lets users create Spotify playlists from their
    # Edit .env with your credentials
    ```
 
-3. **Build and run the container:**
+3. **Build and run the containers (API, Celery worker, Redis):**
+
    ```bash
    docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
    ```
+
+   This will start:
+
+   - Flask API (on port 5000)
+   - Celery worker (for background jobs)
+   - Redis (for sessions and Celery broker/backend)
+
 4. **Access the API:**
 
    default on: http://localhost:5000
+
+---
+
+## ☁️ Production/Deployment Notes
+
+### In production, you must run **two services** with appropiate start commands:
+
+- **Flask API (web server)**
+  ```bash
+  gunicorn --timeout 300 --workers 5 wsgi:app
+  ```
+  Alter timeout and worker parameters based on infrastructure
+- **Celery worker (background worker)**
+  ```bash
+  celery -A app.services.celery_tasks.celery worker --loglevel=info --concurrency=1
+  ```
+  Alter worker parameter based on infrastructure and limit concurrency to avoid out of memory errors
+- **Both must have access to the same Redis instance (preferably managed Redis service).**
 
 ---
 
@@ -83,7 +110,10 @@ Discofy is a web application that lets users create Spotify playlists from their
 - `GET /spotify/get_auth_url` — Get Spotify OAuth URL
 - `GET /spotify/callback` — Spotify OAuth callback
 - `GET /spotify/check_authorization` — Check Spotify auth status
-- `POST /spotify/transfer_collection` — Transfer Discogs collection to Spotify (body: `{ collection: [...] }`)
+- `POST /spotify/transfer_collection` — Start transfer of Discogs collection to Spotify (background task).
+  (body: `{ collection: [...] }`)
+  - Use the returned `task_id` and `progress_key` to poll the status endpoint below.
+- `GET /spotify/transfer_collection_status?task_id=...&progress_key=...` — Check progress and result of a transfer task
 - `POST /spotify/create_playlist` — Create Spotify playlist (body: `{ playlist: [...], playlist_name: "..." }`)
 - `POST /spotify/logout` — Disconnect from Spotify (removes session data)
 
