@@ -8,11 +8,13 @@ from flask import jsonify, request, redirect, url_for, current_app
 import requests
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from celery.result import AsyncResult
 from bleach import clean
 
 from ..services import spotify
 from ..extensions import redis_client
 from . import spotify_bp
+from app.services.celery_tasks import celery, transfer_collection_task
 
 # Spotify OAuth URLs
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
@@ -41,12 +43,34 @@ def transfer_collection():
 
     access_token = session_data['spotify_tokens']['access_token']
 
-    try:
-        output = spotify.transfer_from_discogs(collection_items, access_token)
-        return jsonify(output)
-    except Exception as e:
-        print(f"Error during collection transfer: {e}")
-        return jsonify({"error": "Internal server error during collection import"}), 500
+    # Generate a unique progress key for this task
+    progress_key = f"discofy:progress:{uuid.uuid4()}"
+
+    # Start the Celery task
+    task = transfer_collection_task.apply_async(
+        args=[collection_items, access_token, progress_key])
+    return jsonify({"task_id": task.id, "progress_key": progress_key})
+
+
+@spotify_bp.route('/transfer_collection_status', methods=['GET'])
+def transfer_collection_status():
+    progress_key = request.args.get('progress_key')
+    task_id = request.args.get('task_id')
+    if not progress_key or not task_id:
+        return jsonify({"error": "Missing progress_key or task_id"}), 400
+
+    # Get progress from Redis
+    progress = redis_client.get(progress_key)
+    if progress:
+        progress = json.loads(progress)
+    else:
+        progress = {"current": 0, "total": 0}
+
+    # Get task state
+    task = AsyncResult(task_id, app=celery)
+    state = task.state
+    result = task.result if task.state == 'SUCCESS' else None
+    return jsonify({"state": state, "progress": progress, "result": result})
 
 
 @spotify_bp.route('/create_playlist', methods=['POST'])

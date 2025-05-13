@@ -1,4 +1,12 @@
 services:
+  celery:
+    build: .
+    container_name: celery_discofy
+    env_file: .env
+    command: celery -A app.services.celery_tasks.celery worker --loglevel=info
+    depends_on:
+      - redis
+      
   redis:
     image: redislabs/redismod
     container_name: redis_discofy
