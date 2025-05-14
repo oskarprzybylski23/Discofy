@@ -1,7 +1,11 @@
 import re
+import logging
 
 import spotipy
 from rapidfuzz import fuzz
+from flask import current_app
+
+logger = logging.getLogger(__name__)
 
 
 def search_spotify_albums(access_token, search_query, limit=1):
@@ -112,42 +116,38 @@ def transfer_from_discogs(collection_items, access_token):
 
 def create_playlist(playlist_items, name, access_token):
     if not access_token:
-        print('Access token is missing.')
+        current_app.logger.error('Access token is missing.')
         return
 
+    PLAYLIST_DESCRIPTION = "This is a playlist created from Discogs collection using Discofy"
     spotify = spotipy.Spotify(auth=access_token)
     user_id = spotify.current_user()["id"]
-    playlist_description = "This is a playlist created from Discogs collection using Discofy"
 
     try:
+        # Create an empty playlist
         playlist = spotify.user_playlist_create(
-            user_id, name=name, public=True, description=playlist_description
+            user_id, name=name, public=True, description=PLAYLIST_DESCRIPTION
         )
 
-        # Create placeholder for statistics
-        tracks_number = 0
+        # Extract and list track URIs
+        playlist_tracks = []
+        for album in playlist_items:
+            album_uri = album["uri"]
+            tracks = spotify.album_tracks(album_uri)["items"]
+            album_track_uris = [track["uri"] for track in tracks]
+            playlist_tracks.extend(album_track_uris)
 
-        # Find and add tracks to the playlist
-        for item in playlist_items:
-            album_id = item["uri"]
-            tracks = spotify.album_tracks(album_id)["items"]
-            # get album track uris
-            track_uris = [track["uri"]
-                          for track in tracks]
-            spotify.playlist_add_items(playlist["id"], track_uris)
-
-            # TODO: statistics can be done cleaner
-            # statistics
-            tracks_number = tracks_number + len(tracks)
+        # Add tracks to the playlist in batches (max 100 tracks supported in one request)
+        for i in range(0, len(playlist_tracks), 100):
+            batch = playlist_tracks[i:i+100]
+            spotify.playlist_add_items(playlist["id"], batch)
 
         playlist_url = playlist["external_urls"]["spotify"]
-        # create_report(playlist_data, tracks_number,
-        #               playlist_name, playlist_url)
 
         return playlist_url
 
     except Exception as e:
-        print(f"Error creating playlist: {e}")
+        current_app.logger.error(f"Error creating playlist: {e}")
         return False
 
 
