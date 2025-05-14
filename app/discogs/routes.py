@@ -14,16 +14,14 @@ from . import discogs_bp
 
 @discogs_bp.route('/get_library', methods=['GET'])
 def get_library():
-    print(f"All cookies: {request.cookies}")
     state = request.cookies.get('discogs_state')
-    print(f"state: {state}")
+
     if not state:
         return jsonify({"error": "state parameter"}), 400
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{state}"
     session_data = redis_client.get(session_key)
-    print(f"session data: {session_data}")
 
     if not session_data:
         return jsonify({"error": "Unauthorized or expired session"}), 401
@@ -50,7 +48,7 @@ def get_folder_contents():
     # Get folder id from query parameters, default to 0 [All records]
     folder_id = request.args.get('folder', 0, type=int)
     state = request.cookies.get('discogs_state')
-    print(f"getting collection with cookies: {request.cookies}")
+
     if not state:
         return jsonify({"error": "state parameter"}), 400
 
@@ -82,7 +80,6 @@ def get_folder_contents():
 def get_auth_url():
     # Generate a unique state identifier
     discogs_state = str(uuid.uuid4())  # Unique state per request
-    print(f"Generated state: {discogs_state}")
 
     d = discogs_client.Client(
         'discofy/0.1 +discofy.onrender.com', consumer_key=current_app.config.get('DISCOGS_CONSUMER_KEY'), consumer_secret=current_app.config.get('DISCOGS_CONSUMER_SECRET')
@@ -121,8 +118,7 @@ def get_auth_url():
         max_age=timedelta(days=3).total_seconds(),
         domain=None
     )
-    print(f'Cookie set with state: {discogs_state}')
-    print(f'response data: {response_data}')
+
     return response
 
 
@@ -130,7 +126,6 @@ def get_auth_url():
 def callback():
     # Discogs callback gets state from url parameter passed in /authorize_discogs
     discogs_state = request.args.get('state')
-    print(f"callback state: {discogs_state}")
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{discogs_state}"
@@ -147,7 +142,6 @@ def callback():
     oauth_verifier = request.args.get('oauth_verifier')
 
     request_token_secret = session_data.get('request_token_secret')
-    print(f"request token secret: {request_token_secret}")
 
     d = discogs_client.Client(
         'discofy/0.1 +discofy.onrender.com',
@@ -156,7 +150,6 @@ def callback():
     )
 
     # Set the temporary request token and secret to retrieve the access token
-    print(f"setting tokens: {request_token, request_token_secret} ...")
     d.set_token(request_token, request_token_secret)
 
     try:
@@ -178,8 +171,6 @@ def callback():
             json.dumps(session_data)
         )
 
-        print(f"session_data update: {session_data}")
-
         return redirect(url_for('auth.success'))
     except Exception as e:
         return f'Error during authorization: {e}'
@@ -188,7 +179,7 @@ def callback():
 @discogs_bp.route('/check_authorization', methods=['GET'])
 def check_authorization():
     discogs_state = request.cookies.get('discogs_state')
-    print(f'state: {discogs_state}')
+
     if not discogs_state:
         return jsonify({'authorized': False, 'message': 'cookie not found'}), 200
 
@@ -201,7 +192,6 @@ def check_authorization():
         return jsonify({'authorized': False})
 
     session_data = json.loads(session_data_str)
-    print(f'session_data: {session_data}')
 
     # session_data = auth_sessions.get(discogs_state)
     if session_data and 'discogs_access_token' in session_data and 'discogs_access_token_secret' in session_data:

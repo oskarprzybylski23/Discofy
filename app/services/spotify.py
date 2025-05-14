@@ -56,8 +56,10 @@ def transfer_from_discogs(collection_items, access_token):
     export_items = []
 
     counter_item = 1
+
     for item in collection_items:
-        discogs_artist = item['artist']
+        # TODO: consider handling multiple artists for greater accuracy
+        discogs_artist = item['artists'][0]
         discogs_album = item['title']
         discogs_id = item['discogs_id']
 

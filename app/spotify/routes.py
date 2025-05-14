@@ -8,11 +8,13 @@ from flask import jsonify, request, redirect, url_for, current_app
 import requests
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from celery.result import AsyncResult
 from bleach import clean
 
 from ..services import spotify
 from ..extensions import redis_client
 from . import spotify_bp
+from app.services.celery_tasks import celery, transfer_collection_task
 
 # Spotify OAuth URLs
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
@@ -41,28 +43,45 @@ def transfer_collection():
 
     access_token = session_data['spotify_tokens']['access_token']
 
-    try:
-        output = spotify.transfer_from_discogs(collection_items, access_token)
-        return jsonify(output)
-    except Exception as e:
-        print(f"Error during collection transfer: {e}")
-        return jsonify({"error": "Internal server error during collection import"}), 500
+    # Generate a unique progress key for this task
+    progress_key = f"discofy:progress:{uuid.uuid4()}"
+
+    # Start the Celery task
+    task = transfer_collection_task.apply_async(
+        args=[collection_items, access_token, progress_key])
+    return jsonify({"task_id": task.id, "progress_key": progress_key})
+
+
+@spotify_bp.route('/transfer_collection_status', methods=['GET'])
+def transfer_collection_status():
+    progress_key = request.args.get('progress_key')
+    task_id = request.args.get('task_id')
+    if not progress_key or not task_id:
+        return jsonify({"error": "Missing progress_key or task_id"}), 400
+
+    # Get progress from Redis
+    progress = redis_client.get(progress_key)
+    if progress:
+        progress = json.loads(progress)
+    else:
+        progress = {"current": 0, "total": 0}
+
+    # Get task state
+    task = AsyncResult(task_id, app=celery)
+    state = task.state
+    result = task.result if task.state == 'SUCCESS' else None
+    return jsonify({"state": state, "progress": progress, "result": result})
 
 
 @spotify_bp.route('/create_playlist', methods=['POST'])
 def handle_create_playlist():
-    print('CREATING PLAYLIST')
     data = request.get_json()
     spotify_state = request.cookies.get('spotify_state')
     playlist_items = data.get('playlist')
     playlist_name = data.get('playlist_name')
 
-    print(playlist_name)
-    print(type(playlist_name))
-
     if not spotify_state or not playlist_items:
         return "Error: state or playlist items.", 400
-    print('STEP 2')
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{spotify_state}"
@@ -80,7 +99,7 @@ def handle_create_playlist():
 
     if not access_token:
         return "Error: access token.", 400
-    print('sanitizing name...')
+
     sanitized_name = clean(playlist_name, tags=[], attributes={}, strip=True)
     # create a playlist and get url returned
     playlist_url = spotify.create_playlist(
@@ -93,10 +112,8 @@ def handle_create_playlist():
 
 @spotify_bp.route('/get_auth_url')
 def get_auth_url():
-    print('Getting Spotify auth URL...')
     # Generate a unique state identifier
     spotify_state = str(uuid.uuid4())  # Unique state per request
-    print(f"Generated state: {spotify_state}")
 
     # Create session data
     session_data = {
@@ -132,9 +149,7 @@ def get_auth_url():
         max_age=timedelta(days=3).total_seconds(),
         domain=None
     )
-    print(f'Cookie set with state: {spotify_state}')
 
-    print(f'response data: {response_data}')
     # TODO: Handle errors and return response code
     return response
 
@@ -183,8 +198,6 @@ def callback():
     # Spotify callback receives state from url parameter passed in
     spotify_state = request.cookies.get('spotify_state')
     auth_code = request.args.get('code')
-    print(f'callback cookies: {request.cookies}')
-    print(f'callback code: {request.args.get("code")}')
 
     if not auth_code or not spotify_state:
         return "Error: authorization code or state.", 400
@@ -238,7 +251,7 @@ def callback():
 def check_authorization():
     """ Check if token information is present and if the access token is still valid """
     spotify_state = request.cookies.get('spotify_state')
-    print(f'auth_status check cookies: {request.cookies}')
+
     if not spotify_state:
         return jsonify({'authorized': False, 'message': 'cookie not found'}), 200
 

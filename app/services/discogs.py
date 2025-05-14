@@ -10,12 +10,21 @@ consumer_key = os.getenv('DISCOGS_CONSUMER_KEY')
 consumer_secret = os.getenv('DISCOGS_CONSUMER_SECRET')
 
 
-# def retrieve_tokens(state):
-#     # TODO: This function could get tokens from database once implemented
-#     return discogs_access_token, discogs_access_token_secret
-
-
 def initialize_discogs_client(discogs_access_token, discogs_access_token_secret):
+    """
+    Initializes and authenticates a Discogs API client.
+
+    Uses OAuth tokens to authenticate with the Discogs API and returns the
+    authenticated user's identity object.
+
+    Args:
+        discogs_access_token (str): OAuth access token for Discogs API.
+        discogs_access_token_secret (str): OAuth access token secret for Discogs API.
+
+    Returns:
+        discogs_client.Identity or None: The authenticated user's identity object,
+        or None if tokens are missing or invalid.
+    """
     if not discogs_access_token or not discogs_access_token_secret:
         return None
 
@@ -28,12 +37,27 @@ def initialize_discogs_client(discogs_access_token, discogs_access_token_secret)
     )
 
     me = d.identity()
-    print(me.username)
 
     return me
 
 
 def import_library(discogs_access_token, discogs_access_token_secret):
+    """
+    Fetches the user's Discogs library folder structure.
+
+    Authenticates with the Discogs API and retrieves metadata about the user's
+    collection folders (e.g. 'All', 'Uncategorized', or custom folders), including
+    the name and number of records in each folder.
+
+    Args:
+        discogs_access_token (str): OAuth access token for Discogs API.
+        discogs_access_token_secret (str): OAuth access token secret for Discogs API.
+
+    Returns:
+        dict: A dictionary containing:
+            - 'user_info': The authenticated user's username and profile URL.
+            - 'library': A list of folders with index, folder name, and record count.
+    """
     me = initialize_discogs_client(
         discogs_access_token, discogs_access_token_secret)
 
@@ -60,6 +84,17 @@ def import_library(discogs_access_token, discogs_access_token_secret):
 
 
 def import_collection(discogs_access_token, discogs_access_token_secret, folder_id=0):
+    """
+    Imports a user's Discogs collection data from a specified folder.
+
+    Args:
+        discogs_access_token (str): OAuth access token for the Discogs API.
+        discogs_access_token_secret (str): OAuth access token secret for the Discogs API.
+        folder_id (int, optional): ID of the collection folder to import from. Defaults to 0 (the "All" folder).
+
+    Returns:
+        list[dict]: A list of dictionaries, each representing a release in the collection.
+    """
     me = initialize_discogs_client(
         discogs_access_token, discogs_access_token_secret)
 
@@ -67,19 +102,38 @@ def import_collection(discogs_access_token, discogs_access_token_secret, folder_
     selected_folder = me.collection_folders[folder_id]
 
     for index, item in enumerate(selected_folder.releases, start=1):
-        artist = item.data.get('basic_information').get(
-            'artists')[0].get('name')
-        title = item.data.get('basic_information').get('title')
-        year = item.data.get('basic_information').get('year')
-        id = item.data.get('id')
-        thumb = item.data.get('basic_information').get('thumb')
-        url = f"https://www.discogs.com/release/{id}"
+        basic_info = item.data.get('basic_information', {})
+        formats = basic_info.get('formats', [{}])[0]
 
-        artist_sanitised = re.sub(r'\s*\(\d+\)$', '', artist.strip())
+        artist = [sanitise_string(a.get('name'))
+                  for a in basic_info.get('artists', [])]
+        title = basic_info.get('title')
+        year = basic_info.get('year')
+        discogs_id = basic_info.get('id')
+        thumb = basic_info.get('thumb')
+        format_name = formats.get('name')
+        descriptions = formats.get('descriptions')
+        url = f"https://www.discogs.com/release/{discogs_id}"
 
-        release = {'index': index, 'artist': artist_sanitised, 'title': title,
-                   'year': year, 'discogs_id': id, 'cover': thumb, 'url': url}
+        release = {
+            'index': index,
+            'artists': artist,
+            'title': title,
+            'year': year,
+            'discogs_id': discogs_id,
+            'cover': thumb,
+            'format': format_name,
+            'descriptions': descriptions,
+            'url': url
+        }
 
         collection.append(release)
 
     return collection
+
+
+def sanitise_string(string):
+    """
+    Util function for removing unnecessary characters from string that Discogs adds
+    """
+    return re.sub(r'\s*\(\d+\)$', '', string.strip())
