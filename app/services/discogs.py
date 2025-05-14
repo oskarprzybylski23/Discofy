@@ -37,7 +37,6 @@ def initialize_discogs_client(discogs_access_token, discogs_access_token_secret)
     )
 
     me = d.identity()
-    print(me.username)
 
     return me
 

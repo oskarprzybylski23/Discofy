@@ -75,18 +75,13 @@ def transfer_collection_status():
 
 @spotify_bp.route('/create_playlist', methods=['POST'])
 def handle_create_playlist():
-    print('CREATING PLAYLIST')
     data = request.get_json()
     spotify_state = request.cookies.get('spotify_state')
     playlist_items = data.get('playlist')
     playlist_name = data.get('playlist_name')
 
-    print(playlist_name)
-    print(type(playlist_name))
-
     if not spotify_state or not playlist_items:
         return "Error: state or playlist items.", 400
-    print('STEP 2')
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{spotify_state}"
@@ -104,7 +99,7 @@ def handle_create_playlist():
 
     if not access_token:
         return "Error: access token.", 400
-    print('sanitizing name...')
+
     sanitized_name = clean(playlist_name, tags=[], attributes={}, strip=True)
     # create a playlist and get url returned
     playlist_url = spotify.create_playlist(
@@ -117,10 +112,8 @@ def handle_create_playlist():
 
 @spotify_bp.route('/get_auth_url')
 def get_auth_url():
-    print('Getting Spotify auth URL...')
     # Generate a unique state identifier
     spotify_state = str(uuid.uuid4())  # Unique state per request
-    print(f"Generated state: {spotify_state}")
 
     # Create session data
     session_data = {
@@ -156,9 +149,7 @@ def get_auth_url():
         max_age=timedelta(days=3).total_seconds(),
         domain=None
     )
-    print(f'Cookie set with state: {spotify_state}')
 
-    print(f'response data: {response_data}')
     # TODO: Handle errors and return response code
     return response
 
@@ -207,8 +198,6 @@ def callback():
     # Spotify callback receives state from url parameter passed in
     spotify_state = request.cookies.get('spotify_state')
     auth_code = request.args.get('code')
-    print(f'callback cookies: {request.cookies}')
-    print(f'callback code: {request.args.get("code")}')
 
     if not auth_code or not spotify_state:
         return "Error: authorization code or state.", 400
@@ -262,7 +251,7 @@ def callback():
 def check_authorization():
     """ Check if token information is present and if the access token is still valid """
     spotify_state = request.cookies.get('spotify_state')
-    print(f'auth_status check cookies: {request.cookies}')
+
     if not spotify_state:
         return jsonify({'authorized': False, 'message': 'cookie not found'}), 200
 
