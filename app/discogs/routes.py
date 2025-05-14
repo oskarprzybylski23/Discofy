@@ -39,7 +39,7 @@ def get_library():
             discogs_access_token, discogs_access_token_secret)
         return jsonify(output)
     except Exception as e:
-        print(f"Error during collection import: {e}")
+        current_app.logger.error("Error during collection import: %s", e, exc_info=True)
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 
@@ -72,7 +72,7 @@ def get_folder_contents():
             discogs_access_token, discogs_access_token_secret, folder_id)
         return jsonify(output)
     except Exception as e:
-        print(f"Error during collection import: {e}")
+        current_app.logger.error("Error during collection import: %s", e, exc_info=True)
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 
@@ -132,7 +132,7 @@ def callback():
     session_data_str = redis_client.get(session_key)
 
     if not session_data_str:
-        print('no session data')
+        current_app.logger.error('No session data found for Discogs callback.')
         return 'Invalid or expired session state.', 400
 
     session_data = json.loads(session_data_str)

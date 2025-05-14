@@ -3,6 +3,7 @@ import re
 
 import discogs_client
 from dotenv import load_dotenv
+from flask import current_app
 
 load_dotenv()
 
@@ -26,19 +27,23 @@ def initialize_discogs_client(discogs_access_token, discogs_access_token_secret)
         or None if tokens are missing or invalid.
     """
     if not discogs_access_token or not discogs_access_token_secret:
+        current_app.logger.warning("Missing Discogs access token or secret.")
         return None
 
-    d = discogs_client.Client(
-        'discofy/0.1 +discofy.onrender.com',
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret,
-        token=discogs_access_token,
-        secret=discogs_access_token_secret,
-    )
-
-    me = d.identity()
-
-    return me
+    try:
+        d = discogs_client.Client(
+            'discofy/0.1 +discofy.onrender.com',
+            consumer_key=consumer_key,
+            consumer_secret=consumer_secret,
+            token=discogs_access_token,
+            secret=discogs_access_token_secret,
+        )
+        me = d.identity()
+        current_app.logger.info("Successfully initialized Discogs client for user: %s", getattr(me, 'username', 'unknown'))
+        return me
+    except Exception as e:
+        current_app.logger.error("Failed to initialize Discogs client: %s", e, exc_info=True)
+        return None
 
 
 def import_library(discogs_access_token, discogs_access_token_secret):
@@ -58,20 +63,20 @@ def import_library(discogs_access_token, discogs_access_token_secret):
             - 'user_info': The authenticated user's username and profile URL.
             - 'library': A list of folders with index, folder name, and record count.
     """
+    current_app.logger.info("Importing Discogs Library...")
     me = initialize_discogs_client(
         discogs_access_token, discogs_access_token_secret)
-
+    if not me:
+        current_app.logger.error("Failed to authenticate Discogs client in import_library.")
+        return {"error": "Failed to authenticate with Discogs."}
     username = me.username
     user_url = me.url
     folders = me.collection_folders
-
     library = []
-
     for index, folder in enumerate(folders, start=1):
         folder_item = {'index': index, 'folder': folder.name,
                        'count': f"{folder.count} records"}
         library.append(folder_item)
-
     response = {
         'user_info': {
             'username': username,
@@ -79,7 +84,7 @@ def import_library(discogs_access_token, discogs_access_token_secret):
         },
         'library': library
     }
-
+    current_app.logger.info("Successfully imported library for user: %s", username)
     return response
 
 
@@ -95,40 +100,42 @@ def import_collection(discogs_access_token, discogs_access_token_secret, folder_
     Returns:
         list[dict]: A list of dictionaries, each representing a release in the collection.
     """
+    current_app.logger.info("Importing Discogs collection for folder_id=%s", folder_id)
     me = initialize_discogs_client(
         discogs_access_token, discogs_access_token_secret)
-
+    if not me:
+        current_app.logger.error("Failed to authenticate Discogs client in import_collection.")
+        return []
     collection = []
-    selected_folder = me.collection_folders[folder_id]
-
-    for index, item in enumerate(selected_folder.releases, start=1):
-        basic_info = item.data.get('basic_information', {})
-        formats = basic_info.get('formats', [{}])[0]
-
-        artist = [sanitise_string(a.get('name'))
-                  for a in basic_info.get('artists', [])]
-        title = basic_info.get('title')
-        year = basic_info.get('year')
-        discogs_id = basic_info.get('id')
-        thumb = basic_info.get('thumb')
-        format_name = formats.get('name')
-        descriptions = formats.get('descriptions')
-        url = f"https://www.discogs.com/release/{discogs_id}"
-
-        release = {
-            'index': index,
-            'artists': artist,
-            'title': title,
-            'year': year,
-            'discogs_id': discogs_id,
-            'cover': thumb,
-            'format': format_name,
-            'descriptions': descriptions,
-            'url': url
-        }
-
-        collection.append(release)
-
+    try:
+        selected_folder = me.collection_folders[folder_id]
+        for index, item in enumerate(selected_folder.releases, start=1):
+            basic_info = item.data.get('basic_information', {})
+            formats = basic_info.get('formats', [{}])[0]
+            artist = [sanitise_string(a.get('name'))
+                      for a in basic_info.get('artists', [])]
+            title = basic_info.get('title')
+            year = basic_info.get('year')
+            discogs_id = basic_info.get('id')
+            thumb = basic_info.get('thumb')
+            format_name = formats.get('name')
+            descriptions = formats.get('descriptions')
+            url = f"https://www.discogs.com/release/{discogs_id}"
+            release = {
+                'index': index,
+                'artists': artist,
+                'title': title,
+                'year': year,
+                'discogs_id': discogs_id,
+                'cover': thumb,
+                'format': format_name,
+                'descriptions': descriptions,
+                'url': url
+            }
+            collection.append(release)
+        current_app.logger.info("Successfully imported %d releases from folder_id=%s", len(collection), folder_id)
+    except Exception as e:
+        current_app.logger.error("Error importing collection from folder_id=%s: %s", folder_id, e, exc_info=True)
     return collection
 
 

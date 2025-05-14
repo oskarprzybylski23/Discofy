@@ -188,7 +188,7 @@ def check_token_expiry(session_data):
             # Update session with new tokens
             session_data['spotify_tokens'] = new_token_info
         except Exception as e:
-            print(f"Error refreshing token: {e}")
+            current_app.logger.error("Error refreshing token: %s", e, exc_info=True)
 
     return session_data
 
@@ -225,7 +225,7 @@ def callback():
         token_info = response.json()
 
         if 'error' in token_info:
-            print("Spotify token exchange error:", token_info)
+            current_app.logger.error("Spotify token exchange error: %s", token_info)
             return f"Spotify token error: {token_info['error_description']}", 400
 
         # add expiration time
@@ -287,7 +287,7 @@ def check_authorization():
 
             return jsonify({'authorized': True, 'username': username, 'url': user_url})
         except Exception as e:
-            print(f"Error getting Spotify user profile: {e}")
+            current_app.logger.error("Error getting Spotify user profile: %s", e, exc_info=True)
             return jsonify({'authorized': False, 'error': str(e)}), 400
     else:
         # If the token is expired or not present, consider the user not authorized

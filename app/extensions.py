@@ -3,7 +3,9 @@ from flask_session import Session
 from flask_sslify import SSLify
 from flask_talisman import Talisman
 from flask_cors import CORS
+import logging
 
+logger = logging.getLogger(__name__)
 
 # Initialize Flask-Session
 session = Session()
@@ -15,6 +17,8 @@ redis_client = None
 def init_redis(app):
     global redis_client
     redis_client = redis.from_url(app.config['SESSION_REDIS'])
+    logger.info("Initialized Redis client with URL: %s",
+                app.config['SESSION_REDIS'])
 
 # Initialize security extensions
 
@@ -45,6 +49,7 @@ def init_cors(app):
          allow_headers=['Content-Type', 'Authorization'],
          methods=['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
          vary_header=True)
+    logger.info("Initialized CORS with allowed origins: %s", allowed_origins)
 
 
 def cleanup_expired_sessions():
@@ -62,5 +67,5 @@ def cleanup_expired_sessions():
             redis_client.delete(key)
             count += 1
 
-    print(f"Cleaned up {count} expired sessions")
+    logger.info("Cleaned up %d expired sessions", count)
     return count
