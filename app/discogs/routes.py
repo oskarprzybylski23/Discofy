@@ -206,7 +206,10 @@ def check_authorization():
     if not discogs_state:
         current_app.logger.warning(
             "User not authorized. Discogs session cookie not found")
-        return jsonify({'authorized': False, 'message': 'cookie not found'}), 200
+        return jsonify({
+            'authorized': False,
+            'message': 'cookie not found'
+        }), 200
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{discogs_state}"
@@ -234,7 +237,10 @@ def logout():
     if not discogs_state:
         current_app.logger.warning(
             "User session cookie not found")
-        return jsonify({"status": "error", "message": "No session found."}), 400
+        return jsonify({
+            "status": "error",
+            "message": "No session found."
+        }), 400
 
     session_key = f"discofy:state:{discogs_state}"
 

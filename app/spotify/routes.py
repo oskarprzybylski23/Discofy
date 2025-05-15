@@ -57,7 +57,11 @@ def transfer_collection():
         args=[collection_items, access_token, progress_key])
     current_app.logger.debug(
         "Delegated task to Celery with task id: %s and progress key: %s", task.id, progress_key)
-    return jsonify({"task_id": task.id, "progress_key": progress_key})
+
+    return jsonify({
+        "task_id": task.id,
+        "progress_key": progress_key
+    })
 
 
 @spotify_bp.route('/transfer_collection_status', methods=['GET'])
@@ -84,7 +88,12 @@ def transfer_collection_status():
     state = task.state
     result = task.result if task.state == 'SUCCESS' else None
     current_app.logger.debug("Task %s state: %s", task_id, task.state)
-    return jsonify({"state": state, "progress": progress, "result": result})
+
+    return jsonify({
+        "state": state,
+        "progress": progress,
+        "result": result
+    })
 
 
 @spotify_bp.route('/create_playlist', methods=['POST'])
@@ -120,6 +129,7 @@ def handle_create_playlist():
     # create a playlist and get url returned
     playlist_url = spotify.create_playlist(
         playlist_items, sanitized_name, access_token)
+
     if playlist_url:
         return jsonify({
             "status": "success",
@@ -309,7 +319,10 @@ def check_authorization():
         except Exception as e:
             current_app.logger.error(
                 "Error getting Spotify user profile: %s", e, exc_info=True)
-            return jsonify({'authorized': False, 'error': str(e)}), 400
+            return jsonify({
+                'authorized': False,
+                'error': str(e)
+            }), 400
     else:
         # If the token is expired or not present, consider the user not authorized
         return jsonify({
