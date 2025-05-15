@@ -4,6 +4,7 @@ import logging
 import json
 import time
 
+import requests
 import redis
 import spotipy
 from rapidfuzz import fuzz
@@ -271,7 +272,7 @@ def fetch_playlist_track_uris(spotify, playlist_items):
         return []
 
 
-def check_token_expiry(session_data):
+def check_token_expiry(session_data, spotify_token_url):
     """Check if the Spotify token is expired and refresh if needed"""
     if 'spotify_tokens' not in session_data:
         current_app.logger.warning("Spotify tokens not found in session data")
@@ -297,7 +298,7 @@ def check_token_expiry(session_data):
                 'client_secret': current_app.config.get('SPOTIFY_CLIENT_SECRET'),
             }
 
-            response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
+            response = requests.post(spotify_token_url, data=token_data)
             new_token_info = response.json()
 
             # Add expiration time

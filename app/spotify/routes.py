@@ -277,7 +277,7 @@ def check_authorization():
     session_data = json.loads(session_data_str)
 
     # Check if token needs refresh and refresh if needed
-    session_data = spotify.check_token_expiry(session_data)
+    session_data = spotify.check_token_expiry(session_data, SPOTIFY_TOKEN_URL)
 
     # Update session in Redis with possibly refreshed token
     redis_client.setex(
