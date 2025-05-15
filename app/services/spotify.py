@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import json
+import time
 
 import redis
 import spotipy
@@ -161,31 +162,29 @@ def create_playlist(playlist_items, name, access_token):
             user_id, name=name, public=True, description=PLAYLIST_DESCRIPTION
         )
 
-        # Extract and list track URIs
-        playlist_tracks = []
-        for album in playlist_items:
-            album_uri = album["uri"]
-            tracks = spotify.album_tracks(album_uri)["items"]
-            album_track_uris = [track["uri"] for track in tracks]
-            playlist_tracks.extend(album_track_uris)
+        # Extract playlist track uris
+        current_app.logger.debug("Fetching playlist track URIs")
+        playlist_track_uris = fetch_playlist_track_uris(
+            spotify, playlist_items)
 
         # Add tracks to the playlist in batches (max 100 tracks supported in one request)
         current_app.logger.debug(
-            "Adding %d tracks to playlist '%s", len(playlist_tracks), name)
+            "Adding %d tracks to playlist '%s'", len(playlist_track_uris), name)
         batch_counter = 1
-        for i in range(0, len(playlist_tracks), 100):
+        for i in range(0, len(playlist_track_uris), 100):
             min_track = i + 1
             max_track = i + 100 if i + \
-                100 < len(playlist_tracks) else len(playlist_tracks)
+                100 < len(playlist_track_uris) else len(playlist_track_uris)
             current_app.logger.debug(
                 "Batch %d: adding tracks index %d to %d", batch_counter, min_track, max_track)
-            batch = playlist_tracks[i:i+100]
+            batch = playlist_track_uris[i:i+100]
             spotify.playlist_add_items(playlist["id"], batch)
             batch_counter = batch_counter + 1
 
         playlist_url = playlist["external_urls"]["spotify"]
         current_app.logger.info(
-            "Successfully created playlist: '%s', with %d tracks in %d albums with url: '%s'", name, len(playlist_tracks), len(playlist_items), playlist_url)
+            "Successfully created playlist: '%s', with %d tracks in %d albums with url: '%s'", name, len(playlist_track_uris), len(playlist_items), playlist_url)
+
         return playlist_url
 
     except Exception as e:
@@ -254,3 +253,69 @@ def is_match(discogs_artist, discogs_album, spotify_artist, spotify_album, thres
         logger.debug(
             "No comparison ratio returned a good match for '%s - %s'", discogs_album, discogs_artist)
         return False, base_ratio
+
+
+def fetch_playlist_track_uris(spotify, playlist_items):
+    playlist_track_uris = []
+    try:
+        for album in playlist_items:
+            album_uri = album["uri"]
+            tracks = spotify.album_tracks(album_uri)["items"]
+            album_track_uris = [track["uri"] for track in tracks]
+            playlist_track_uris.extend(album_track_uris)
+
+        return playlist_track_uris
+
+    except Exception as e:
+        current_app.logger.warning(
+            f"Failed to fetch tracks for album {album_uri}: {e}")
+        return []
+
+
+def check_token_expiry(session_data):
+    """Check if the Spotify token is expired and refresh if needed"""
+    if 'spotify_tokens' not in session_data:
+        current_app.logger.warning("Spotify tokens not found in session data")
+        return session_data
+
+    current_time = int(time.time())
+
+    # Check if the token expires in the next 60 seconds
+    token_expires_in = session_data['spotify_tokens'].get(
+        'expires_at', 0) - current_time
+    if token_expires_in < 60:
+        current_app.logger.warning(
+            "Spotify token expires in %d seconds. Refreshing the token", token_expires_in)
+        try:
+            # Refreshing the token
+            refresh_token = session_data['spotify_tokens']['refresh_token']
+
+            # If we have a refresh token, refresh the access token
+            token_data = {
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token,
+                'client_id': current_app.config.get('SPOTIFY_CLIENT_ID'),
+                'client_secret': current_app.config.get('SPOTIFY_CLIENT_SECRET'),
+            }
+
+            response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
+            new_token_info = response.json()
+
+            # Add expiration time
+            new_token_info['expires_at'] = int(
+                time.time()) + new_token_info['expires_in']
+
+            # Make sure we keep the refresh token if it's not included in the new response
+            if 'refresh_token' not in new_token_info:
+                new_token_info['refresh_token'] = refresh_token
+
+            # Update session with new tokens
+            session_data['spotify_tokens'] = new_token_info
+            current_app.logger.info(
+                "New token generated. Expires at: %s", new_token_info['expires_at'])
+
+        except Exception as e:
+            current_app.logger.error(
+                "Error refreshing token: %s", e, exc_info=True)
+
+    return session_data

@@ -187,55 +187,6 @@ def get_auth_url():
     return response
 
 
-def check_token_expiry(session_data):
-    """Check if the Spotify token is expired and refresh if needed"""
-    if 'spotify_tokens' not in session_data:
-        current_app.logger.warning("Spotify tokens not found in session data")
-        return session_data
-
-    current_time = int(time.time())
-
-    # Check if the token expires in the next 60 seconds
-    token_expires_in = session_data['spotify_tokens'].get(
-        'expires_at', 0) - current_time
-    if token_expires_in < 60:
-        current_app.logger.warning(
-            "Spotify token expires in %d seconds. Refreshing the token", token_expires_in)
-        try:
-            # Refreshing the token
-            refresh_token = session_data['spotify_tokens']['refresh_token']
-
-            # If we have a refresh token, refresh the access token
-            token_data = {
-                'grant_type': 'refresh_token',
-                'refresh_token': refresh_token,
-                'client_id': current_app.config.get('SPOTIFY_CLIENT_ID'),
-                'client_secret': current_app.config.get('SPOTIFY_CLIENT_SECRET'),
-            }
-
-            response = requests.post(SPOTIFY_TOKEN_URL, data=token_data)
-            new_token_info = response.json()
-
-            # Add expiration time
-            new_token_info['expires_at'] = int(
-                time.time()) + new_token_info['expires_in']
-
-            # Make sure we keep the refresh token if it's not included in the new response
-            if 'refresh_token' not in new_token_info:
-                new_token_info['refresh_token'] = refresh_token
-
-            # Update session with new tokens
-            session_data['spotify_tokens'] = new_token_info
-            current_app.logger.info(
-                "New token generated. Expires at: %s", new_token_info['expires_at'])
-
-        except Exception as e:
-            current_app.logger.error(
-                "Error refreshing token: %s", e, exc_info=True)
-
-    return session_data
-
-
 @spotify_bp.route('/callback')
 def callback():
     # Spotify callback receives state from url parameter passed in
@@ -326,7 +277,7 @@ def check_authorization():
     session_data = json.loads(session_data_str)
 
     # Check if token needs refresh and refresh if needed
-    session_data = check_token_expiry(session_data)
+    session_data = spotify.check_token_expiry(session_data)
 
     # Update session in Redis with possibly refreshed token
     redis_client.setex(
@@ -341,8 +292,8 @@ def check_authorization():
 
         # Extract the username (Spotify user ID) from the user profile
         try:
-            spotify = spotipy.Spotify(auth=spotify_access_token)
-            user_profile = spotify.current_user()
+            spotify_client = spotipy.Spotify(auth=spotify_access_token)
+            user_profile = spotify_client.current_user()
             username = user_profile['id']
             user_url = user_profile['external_urls']['spotify']
 
