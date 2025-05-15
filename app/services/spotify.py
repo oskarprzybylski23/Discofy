@@ -146,7 +146,7 @@ def transfer_from_discogs(collection_items, access_token, progress_key=None):
 
 def create_playlist(playlist_items, name, access_token):
     if not access_token:
-        current_app.logger.error('Access token is missing.')
+        current_app.logger.error("Access token is missing.")
         return
 
     PLAYLIST_DESCRIPTION = "This is a playlist created from Discogs collection using Discofy"
@@ -155,6 +155,8 @@ def create_playlist(playlist_items, name, access_token):
 
     try:
         # Create an empty playlist
+        current_app.logger.debug(
+            "Creating playlist with name: '%s' and description: '%s' for user id: %s", name, PLAYLIST_DESCRIPTION, user_id)
         playlist = spotify.user_playlist_create(
             user_id, name=name, public=True, description=PLAYLIST_DESCRIPTION
         )
@@ -168,12 +170,22 @@ def create_playlist(playlist_items, name, access_token):
             playlist_tracks.extend(album_track_uris)
 
         # Add tracks to the playlist in batches (max 100 tracks supported in one request)
+        current_app.logger.debug(
+            "Adding %d tracks to playlist '%s", len(playlist_tracks), name)
+        batch_counter = 1
         for i in range(0, len(playlist_tracks), 100):
+            min_track = i + 1
+            max_track = i + 100 if i + \
+                100 < len(playlist_tracks) else len(playlist_tracks)
+            current_app.logger.debug(
+                "Batch %d: adding tracks index %d to %d", batch_counter, min_track, max_track)
             batch = playlist_tracks[i:i+100]
             spotify.playlist_add_items(playlist["id"], batch)
+            batch_counter = batch_counter + 1
 
         playlist_url = playlist["external_urls"]["spotify"]
-
+        current_app.logger.info(
+            "Successfully created playlist: '%s', with %d tracks in %d albums with url: '%s'", name, len(playlist_tracks), len(playlist_items), playlist_url)
         return playlist_url
 
     except Exception as e:
