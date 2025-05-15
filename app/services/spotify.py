@@ -110,7 +110,7 @@ def transfer_from_discogs(collection_items, access_token, progress_key=None):
                 match, score = is_match(
                     discogs_artist, discogs_album, found_artist, found_album)
                 if match:
-                    logger.info("Matched Discogs item '%s - %s' with Spotify result '%s - %s'. Match score: %d%",
+                    logger.info("Matched Discogs item %s - %s with Spotify result %s - %s. Match score: %d",
                                 discogs_artist, discogs_album, found_artist, found_album, score)
                     album_data = search_result
                     album_data['found'] = True
