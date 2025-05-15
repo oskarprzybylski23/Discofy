@@ -16,50 +16,6 @@ REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379')
 celery_redis_client = redis.Redis.from_url(REDIS_URL)
 
 
-def search_spotify_albums(access_token, search_query, limit=1):
-    """
-    Search Spotify for albums using the given query string.
-    Returns metadata for the top match if found, otherwise None.
-    """
-    if not access_token:
-        logger.warning("Access token is missing.")
-        return []
-
-    spotify = spotipy.Spotify(auth=access_token)
-
-    try:
-        logger.debug(
-            "Searching Spotify for query: '%s', with limit: %d", search_query, limit)
-        search_result = spotify.search(
-            q=search_query, type='album', limit=limit)
-
-        items = search_result.get('albums', []).get('items')
-
-        if items:
-            logger.debug("Search returned %d items", len(items))
-            # return first result
-            album = items[0]
-            return {
-                "artist": album["artists"][0]["name"],
-                "title": album["name"],
-                "image": album["images"][0]["url"] if album["images"] else None,
-                "url": album["external_urls"]["spotify"],
-                "id": album["id"],
-                "uri": album["uri"],
-                "found": True,
-            }
-
-        else:
-            logger.debug(
-                "Search returned no items.")
-            return False
-
-    except Exception as e:
-        logger.error(f"Spotify search failed: {e}")
-
-    return None
-
-
 def transfer_from_discogs(collection_items, access_token, progress_key=None):
     """
     Attempts to find Spotify matches for a Discogs item.
@@ -145,51 +101,47 @@ def transfer_from_discogs(collection_items, access_token, progress_key=None):
     return export_items
 
 
-def create_playlist(playlist_items, name, access_token):
+def search_spotify_albums(access_token, search_query, limit=1):
+    """
+    Search Spotify for albums using the given query string.
+    Returns metadata for the top match if found, otherwise None.
+    """
     if not access_token:
-        current_app.logger.error("Access token is missing.")
-        return
+        logger.warning("Access token is missing.")
+        return []
 
-    PLAYLIST_DESCRIPTION = "This is a playlist created from Discogs collection using Discofy"
     spotify = spotipy.Spotify(auth=access_token)
-    user_id = spotify.current_user()["id"]
 
     try:
-        # Create an empty playlist
-        current_app.logger.debug(
-            "Creating playlist with name: '%s' and description: '%s' for user id: %s", name, PLAYLIST_DESCRIPTION, user_id)
-        playlist = spotify.user_playlist_create(
-            user_id, name=name, public=True, description=PLAYLIST_DESCRIPTION
-        )
+        logger.debug(
+            "Searching Spotify for query: '%s', with limit: %d", search_query, limit)
+        search_result = spotify.search(
+            q=search_query, type='album', limit=limit)
 
-        # Extract playlist track uris
-        current_app.logger.debug("Fetching playlist track URIs")
-        playlist_track_uris = fetch_playlist_track_uris(
-            spotify, playlist_items)
+        items = search_result.get('albums', []).get('items')
 
-        # Add tracks to the playlist in batches (max 100 tracks supported in one request)
-        current_app.logger.debug(
-            "Adding %d tracks to playlist '%s'", len(playlist_track_uris), name)
-        batch_counter = 1
-        for i in range(0, len(playlist_track_uris), 100):
-            min_track = i + 1
-            max_track = i + 100 if i + \
-                100 < len(playlist_track_uris) else len(playlist_track_uris)
-            current_app.logger.debug(
-                "Batch %d: adding tracks index %d to %d", batch_counter, min_track, max_track)
-            batch = playlist_track_uris[i:i+100]
-            spotify.playlist_add_items(playlist["id"], batch)
-            batch_counter = batch_counter + 1
+        if items:
+            logger.debug("Search returned %d items", len(items))
+            # return first result
+            album = items[0]
+            return {
+                "artist": album["artists"][0]["name"],
+                "title": album["name"],
+                "image": album["images"][0]["url"] if album["images"] else None,
+                "url": album["external_urls"]["spotify"],
+                "id": album["id"],
+                "uri": album["uri"],
+                "found": True,
+            }
 
-        playlist_url = playlist["external_urls"]["spotify"]
-        current_app.logger.info(
-            "Successfully created playlist: '%s', with %d tracks in %d albums with url: '%s'", name, len(playlist_track_uris), len(playlist_items), playlist_url)
-
-        return playlist_url
+        else:
+            logger.debug(
+                "Search returned no items.")
+            return False
 
     except Exception as e:
-        current_app.logger.error(f"Error creating playlist: {e}")
-        return False
+        logger.error(f"Spotify search failed: {e}")
+    return None
 
 
 def sanitize(text):
@@ -253,6 +205,53 @@ def is_match(discogs_artist, discogs_album, spotify_artist, spotify_album, thres
         logger.debug(
             "No comparison ratio returned a good match for '%s - %s'", discogs_album, discogs_artist)
         return False, base_ratio
+
+
+def create_playlist(playlist_items, name, access_token):
+    if not access_token:
+        current_app.logger.error("Access token is missing.")
+        return
+
+    PLAYLIST_DESCRIPTION = "This is a playlist created from Discogs collection using Discofy"
+    spotify = spotipy.Spotify(auth=access_token)
+    user_id = spotify.current_user()["id"]
+
+    try:
+        # Create an empty playlist
+        current_app.logger.debug(
+            "Creating playlist with name: '%s' and description: '%s' for user id: %s", name, PLAYLIST_DESCRIPTION, user_id)
+        playlist = spotify.user_playlist_create(
+            user_id, name=name, public=True, description=PLAYLIST_DESCRIPTION
+        )
+
+        # Extract playlist track uris
+        current_app.logger.debug("Fetching playlist track URIs")
+        playlist_track_uris = fetch_playlist_track_uris(
+            spotify, playlist_items)
+
+        # Add tracks to the playlist in batches (max 100 tracks supported in one request)
+        current_app.logger.debug(
+            "Adding %d tracks to playlist '%s'", len(playlist_track_uris), name)
+        batch_counter = 1
+        for i in range(0, len(playlist_track_uris), 100):
+            min_track = i + 1
+            max_track = i + 100 if i + \
+                100 < len(playlist_track_uris) else len(playlist_track_uris)
+            current_app.logger.debug(
+                "Batch %d: adding tracks index %d to %d", batch_counter, min_track, max_track)
+            batch = playlist_track_uris[i:i+100]
+            spotify.playlist_add_items(playlist["id"], batch)
+            batch_counter = batch_counter + 1
+
+        playlist_url = playlist["external_urls"]["spotify"]
+        current_app.logger.info(
+            "Successfully created playlist: '%s', with %d tracks in %d albums with url: '%s'", name, len(playlist_track_uris), len(playlist_items), playlist_url)
+
+        return playlist_url
+
+    except Exception as e:
+        current_app.logger.error(f"Error creating playlist: {e}")
+        return False
 
 
 def fetch_playlist_track_uris(spotify, playlist_items):
