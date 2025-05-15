@@ -19,10 +19,17 @@ celery_redis_client = redis.Redis.from_url(REDIS_URL)
 
 def transfer_from_discogs(collection_items, access_token, progress_key=None):
     """
-    Attempts to find Spotify matches for a Discogs item.
-    Uses a two-pass search: first with artist + album, then album only.
-    Applies fuzzy matching to verify the results.
-    Returns a  matched (or not matched) items with Spotify metadata.
+    Attempts to find Spotify matches for a list of Discogs collection items.
+    Uses a multi-pass search. Applies fuzzy matching to verify results.
+    Updates progress in Redis if a progress_key is provided.
+
+    Args:
+        collection_items (list): List of Discogs collection items (dicts with 'artists', 'title', 'discogs_id').
+        access_token (str): Spotify access token for API requests.
+        progress_key (str, optional): Redis key for progress tracking. Defaults to None.
+
+    Returns:
+        list: List of dicts containing matched (or unmatched) items with Spotify metadata and match status.
     """
     if not access_token:
         logger.warning("Access token is missing.")
@@ -105,7 +112,14 @@ def transfer_from_discogs(collection_items, access_token, progress_key=None):
 def search_spotify_albums(access_token, search_query, limit=1):
     """
     Search Spotify for albums using the given query string.
-    Returns metadata for the top match if found, otherwise None.
+
+    Args:
+        access_token (str): Spotify access token for API requests.
+        search_query (str): Query string to search for albums.
+        limit (int, optional): Maximum number of results to return. Defaults to 1.
+
+    Returns:
+        dict or bool: Metadata for the top match if found (dict), False if no items found, or None on error.
     """
     if not access_token:
         logger.warning("Access token is missing.")
@@ -146,6 +160,9 @@ def search_spotify_albums(access_token, search_query, limit=1):
 
 
 def sanitize(text):
+    """
+    Sanitize a string for comparison by lowercasing, removing bracketed numbers, special characters, and normalizing whitespace.
+    """
     text = text.lower()
     text = re.sub(r'\s*\(\d+\)', '', text)  # Remove bracketed numbers like (7)
     # Remove anything in (...) or [...]
@@ -156,6 +173,19 @@ def sanitize(text):
 
 
 def is_match(discogs_artist, discogs_album, spotify_artist, spotify_album, threshold=85):
+    """
+    Compare Discogs and Spotify artist/album pairs using fuzzy matching to determine if they are a likely match.
+
+    Args:
+        discogs_artist (str): Artist name from Discogs.
+        discogs_album (str): Album title from Discogs.
+        spotify_artist (str): Artist name from Spotify.
+        spotify_album (str): Album title from Spotify.
+        threshold (int, optional): Minimum similarity score for a match. Defaults to 85.
+
+    Returns:
+        tuple: (bool, int) where bool indicates if a match was found, and int is the match score.
+    """
     d_artist = sanitize(discogs_artist)
     d_album = sanitize(discogs_album)
     s_artist = sanitize(spotify_artist)
@@ -209,6 +239,17 @@ def is_match(discogs_artist, discogs_album, spotify_artist, spotify_album, thres
 
 
 def create_playlist(playlist_items, name, access_token):
+    """
+    Create a new Spotify playlist from a list of album items and add all tracks from those albums.
+
+    Args:
+        playlist_items (list): List of album dicts.
+        name (str): Name for the new playlist.
+        access_token (str): Spotify access token for API requests.
+
+    Returns:
+        str or bool: URL of the created playlist if successful, False otherwise.
+    """
     if not access_token:
         current_app.logger.error("Access token is missing.")
         return
@@ -256,6 +297,16 @@ def create_playlist(playlist_items, name, access_token):
 
 
 def fetch_playlist_track_uris(spotify, playlist_items):
+    """
+    Fetch all track URIs from a list of Spotify album items.
+
+    Args:
+        spotify (spotipy.Spotify): Authenticated Spotipy client.
+        playlist_items (list): List of album dicts with Spotify URIs.
+
+    Returns:
+        list: List of track URIs from all albums, or an empty list on error.
+    """
     playlist_track_uris = []
     try:
         for album in playlist_items:
@@ -273,7 +324,17 @@ def fetch_playlist_track_uris(spotify, playlist_items):
 
 
 def check_token_expiry(session_data, spotify_token_url):
-    """Check if the Spotify token is expired and refresh if needed"""
+    """
+    Check if the Spotify access token in session data is about to expire and refresh it if needed.
+    Updates the session data in-place with new token info if refreshed.
+
+    Args:
+        session_data (dict): Session data containing 'spotify_tokens'.
+        spotify_token_url (str): Spotify token endpoint URL for refreshing tokens.
+
+    Returns:
+        dict: Updated session data with refreshed tokens if applicable, otherwise returns unchanged session data.
+    """
     if 'spotify_tokens' not in session_data:
         current_app.logger.warning("Spotify tokens not found in session data")
         return session_data
