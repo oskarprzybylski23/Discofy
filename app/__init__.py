@@ -1,3 +1,6 @@
+import sys
+import logging
+
 from flask import Flask
 from config import Config
 from .extensions import session, init_cors, init_security, init_redis
@@ -5,6 +8,11 @@ from .extensions import session, init_cors, init_security, init_redis
 
 def create_app(config=Config):
     app = Flask(__name__)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    if not app.logger.handlers:
+        app.logger.addHandler(handler)
+    app.logger.setLevel(logging.INFO)
     app.logger.info("Creating Flask App")
 
     # Load configuration
