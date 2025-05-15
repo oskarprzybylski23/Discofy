@@ -14,22 +14,26 @@ from . import discogs_bp
 
 @discogs_bp.route('/get_library', methods=['GET'])
 def get_library():
-    state = request.cookies.get('discogs_state')
+    discogs_state = request.cookies.get('discogs_state')
 
-    if not state:
+    if not discogs_state:
         return jsonify({"error": "state parameter"}), 400
 
     # Get the redis session with the state key
-    session_key = f"discofy:state:{state}"
+    session_key = f"discofy:state:{discogs_state}"
     session_data = redis_client.get(session_key)
 
     if not session_data:
+        current_app.logger.error(
+            "Requested session key: %s not found in Redis. Session not authorized.", session_key)
         return jsonify({"error": "Unauthorized or expired session"}), 401
 
     session_data = json.loads(session_data)
     # session_data = auth_sessions.get(state)
     if not session_data or 'discogs_access_token' not in session_data or 'discogs_access_token_secret' not in session_data:
-        return jsonify({"error": "Unauthorized or expired session"}), 401
+        current_app.logger.error(
+            "Session tokens not found in session data for session key: %s", session_key)
+        return jsonify({"error": "Unauthorized or incomplete Discogs session"}), 401
 
     try:
         discogs_access_token = session_data['discogs_access_token']
@@ -37,9 +41,12 @@ def get_library():
 
         output = discogs.import_library(
             discogs_access_token, discogs_access_token_secret)
+
         return jsonify(output)
+
     except Exception as e:
-        print(f"Error during collection import: {e}")
+        current_app.logger.error(
+            "Error during collection import: %s", e, exc_info=True)
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 
@@ -47,21 +54,25 @@ def get_library():
 def get_folder_contents():
     # Get folder id from query parameters, default to 0 [All records]
     folder_id = request.args.get('folder', 0, type=int)
-    state = request.cookies.get('discogs_state')
+    discogs_state = request.cookies.get('discogs_state')
 
-    if not state:
+    if not discogs_state:
+        current_app.logger.error("Missing state")
         return jsonify({"error": "state parameter"}), 400
-
     # Get the redis session with the state key
-    session_key = f"discofy:state:{state}"
+    session_key = f"discofy:state:{discogs_state}"
     session_data = redis_client.get(session_key)
 
     if not session_data:
+        current_app.logger.error(
+            "Requested session key: %s not found in Redis. Session not authorized.", session_key)
         return jsonify({"error": "Unauthorized or expired session"}), 401
 
     session_data = json.loads(session_data)
 
-    if not session_data or 'discogs_access_token' not in session_data or 'discogs_access_token_secret' not in session_data:
+    if 'discogs_access_token' not in session_data or 'discogs_access_token_secret' not in session_data:
+        current_app.logger.error(
+            "Session tokens not found in session data for session key: %s", session_key)
         return jsonify({"error": "Unauthorized or expired session"}), 401
 
     try:
@@ -70,15 +81,19 @@ def get_folder_contents():
 
         output = discogs.import_collection(
             discogs_access_token, discogs_access_token_secret, folder_id)
+
         return jsonify(output)
+
     except Exception as e:
-        print(f"Error during collection import: {e}")
+        current_app.logger.error(
+            "Error during collection import: %s", e, exc_info=True)
         return jsonify({"error": "Internal server error during collection import"}), 500
 
 
 @discogs_bp.route('/get_auth_url', methods=['POST'])
 def get_auth_url():
     # Generate a unique state identifier
+    current_app.logger.debug("Generating Discogs state identifier")
     discogs_state = str(uuid.uuid4())  # Unique state per request
 
     d = discogs_client.Client(
@@ -100,6 +115,8 @@ def get_auth_url():
 
     # Store in Redis with the state as part of the key
     session_key = f"discofy:state:{discogs_state}"
+    current_app.logger.debug(
+        "Creating session entry in Redis: %s", session_key)
     redis_client.setex(
         session_key,
         timedelta(
@@ -119,6 +136,8 @@ def get_auth_url():
         domain=None
     )
 
+    current_app.logger.info("Received authorisation url: %s", url)
+
     return response
 
 
@@ -132,8 +151,8 @@ def callback():
     session_data_str = redis_client.get(session_key)
 
     if not session_data_str:
-        print('no session data')
-        return 'Invalid or expired session state.', 400
+        current_app.logger.error('No session data found for Discogs callback.')
+        return jsonify({"error": "Invalid or expired session state."}), 400
 
     session_data = json.loads(session_data_str)
 
@@ -156,6 +175,8 @@ def callback():
         discogs_access_token, discogs_access_token_secret = d.get_access_token(
             oauth_verifier)
 
+        current_app.logger.info(
+            "Discogs token successfully obtained. Saving in session")
         # For now, storing it in `auth_sessions` just for the example
         session_data['discogs_access_token'] = discogs_access_token
         session_data['discogs_access_token_secret'] = discogs_access_token_secret
@@ -173,7 +194,9 @@ def callback():
 
         return redirect(url_for('auth.success'))
     except Exception as e:
-        return f'Error during authorization: {e}'
+        current_app.logger.error(
+            "Error handling Discogs callback: %s", e, exc_info=True)
+        return jsonify({"error": "Internal server error during authorization"}), 500
 
 
 @discogs_bp.route('/check_authorization', methods=['GET'])
@@ -181,20 +204,27 @@ def check_authorization():
     discogs_state = request.cookies.get('discogs_state')
 
     if not discogs_state:
-        return jsonify({'authorized': False, 'message': 'cookie not found'}), 200
+        current_app.logger.warning(
+            "User not authorized. Discogs session cookie not found")
+        return jsonify({
+            'authorized': False,
+            'message': 'cookie not found'
+        }), 200
 
     # Get the redis session with the state key
     session_key = f"discofy:state:{discogs_state}"
     session_data_str = redis_client.get(session_key)
 
     if not session_data_str:
-        print('no session data')
+        current_app.logger.warning(
+            "User not authorized. Session data could not be found for session key: %s", session_key)
         return jsonify({'authorized': False})
 
     session_data = json.loads(session_data_str)
 
-    # session_data = auth_sessions.get(discogs_state)
-    if session_data and 'discogs_access_token' in session_data and 'discogs_access_token_secret' in session_data:
+    if 'discogs_access_token' in session_data and 'discogs_access_token_secret' in session_data:
+        current_app.logger.info(
+            "User connected to Discogs successfully")
         return jsonify({'authorized': True})
     else:
         return jsonify({'authorized': False})
@@ -205,15 +235,25 @@ def logout():
     discogs_state = request.cookies.get('discogs_state')
 
     if not discogs_state:
-        return jsonify({"status": "error", "message": "No session found."}), 400
+        current_app.logger.warning(
+            "User session cookie not found")
+        return jsonify({
+            "status": "error",
+            "message": "No session found."
+        }), 400
 
     session_key = f"discofy:state:{discogs_state}"
+
+    current_app.logger.info("Removing session: %s from Redis", session_key)
     redis_client.delete(session_key)
 
-    response = jsonify(
-        {"status": "success", "message": "Logged out successfully."})
+    response = jsonify({
+        "status": "success",
+        "message": "Logged out successfully."
+    })
 
     # Clear the cookie by setting it with an expired max_age
+    current_app.logger.info("Clearing user cookie")
     response.set_cookie(
         'discogs_state',
         '',
