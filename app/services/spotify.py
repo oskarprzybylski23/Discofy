@@ -1,11 +1,18 @@
+import os
 import re
 import logging
+import json
 
+import redis
 import spotipy
 from rapidfuzz import fuzz
 from flask import current_app
 
 logger = logging.getLogger(__name__)
+
+# Create Celery specific client for functions handled by Celery in background
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379')
+celery_redis_client = redis.Redis.from_url(REDIS_URL)
 
 
 def search_spotify_albums(access_token, search_query, limit=1):
@@ -14,17 +21,21 @@ def search_spotify_albums(access_token, search_query, limit=1):
     Returns metadata for the top match if found, otherwise None.
     """
     if not access_token:
-        print('Access token is missing.')
+        logger.warning("Access token is missing.")
         return []
 
     spotify = spotipy.Spotify(auth=access_token)
 
     try:
+        logger.debug(
+            "Searching Spotify for query: '%s', with limit: %d", search_query, limit)
         search_result = spotify.search(
             q=search_query, type='album', limit=limit)
 
-        items = search_result["albums"]["items"]
+        items = search_result.get('albums', []).get('items')
+
         if items:
+            logger.debug("Search returned %d items", len(items))
             # return first result
             album = items[0]
             return {
@@ -38,45 +49,46 @@ def search_spotify_albums(access_token, search_query, limit=1):
             }
 
         else:
+            logger.debug(
+                "Search returned no items.")
             return False
 
     except Exception as e:
-        print(f"Spotify search failed: {e}")
+        logger.error(f"Spotify search failed: {e}")
 
     return None
 
 
-def transfer_from_discogs(collection_items, access_token):
+def transfer_from_discogs(collection_items, access_token, progress_key=None):
     """
-    Attempts to find Spotify matches for a list of Discogs albums.
+    Attempts to find Spotify matches for a Discogs item.
     Uses a two-pass search: first with artist + album, then album only.
     Applies fuzzy matching to verify the results.
-    Returns a list of matched (or not matched) items with Spotify metadata.
+    Returns a  matched (or not matched) items with Spotify metadata.
     """
     if not access_token:
-        print('Access token is missing.')
+        logger.warning("Access token is missing.")
         return []
 
     export_items = []
+    total = len(collection_items)
 
-    counter_item = 1
-
-    for item in collection_items:
-        # TODO: consider handling multiple artists for greater accuracy
+    for idx, item in enumerate(collection_items):
         discogs_artist = item['artists'][0]
         discogs_album = item['title']
         discogs_id = item['discogs_id']
 
-        print(f"[{counter_item}] SEARCHING for {discogs_artist} - {discogs_album}...")
-        counter_item = counter_item + 1
-        # Search by album name and filter by artist or by album name only
+        logger.info(
+            "[%d out of %d] - Handling collection item: '%s - %s'",
+            idx + 1, total, discogs_artist, discogs_album
+        )
+
         search_queries = [
             f"{discogs_album} artist:{discogs_artist}",
-            f"album:{discogs_album}",  # fallback
-            discogs_album  # fallback 2
+            f"album:{discogs_album}",
+            discogs_album
         ]
 
-        # Default structure for items not found
         album_data = {
             "artist": None,
             "title": None,
@@ -86,30 +98,48 @@ def transfer_from_discogs(collection_items, access_token):
             "uri": None,
             "found": False,
         }
-        counter = 1
-        for search_query in search_queries:
-            print(f"PASS {counter}: searching: {search_query}")
-            counter = counter + 1
+
+        for query_idx, search_query in enumerate(search_queries, start=1):
+            logger.debug("[Search pass %d]", query_idx)
             search_result = search_spotify_albums(access_token, search_query)
             if search_result:
                 found_artist = search_result.get('artist', '')
                 found_album = search_result.get('title', '')
-                match, match_score = is_match(
-                    discogs_artist, discogs_album, found_artist, found_album
-                )
-                print(
-                    f'found {found_artist} - {found_album}. Match score: {match_score}')
+                logger.debug("Search returned: '%s - %s'",
+                             found_artist, found_album)
+                match, score = is_match(
+                    discogs_artist, discogs_album, found_artist, found_album)
                 if match:
-                    print(
-                        f'SUCCESS: {discogs_artist} - {discogs_album} matching with {found_artist} - {found_album}')
+                    logger.info("Matched Discogs item '%s - %s' with Spotify result '%s - %s'. Match score: %d%",
+                                discogs_artist, discogs_album, found_artist, found_album, score)
                     album_data = search_result
-                    break  # Found good match, exit loop
-            else:
-                print('NO RESULTS')
+                    album_data['found'] = True
+                    break
 
-        # Add corresponding discogs_id and append item data to the exported list
+        if not album_data['found']:
+            logger.info("No match found for '%s - %s' (discogs_id: %s)",
+                        discogs_artist, discogs_album, discogs_id)
+
         album_data['discogs_id'] = discogs_id
         export_items.append(album_data)
+
+        # Celery task progress update
+        if progress_key:
+            progress = {'current': idx + 1, 'total': total}
+            celery_redis_client.set(progress_key, json.dumps(progress))
+
+    # Final summary
+    matched_count = sum(1 for item in export_items if item.get('found'))
+    logger.info("Finished processing %d items. Matched: %d, Unmatched: %d.",
+                total, matched_count, total - matched_count)
+
+    # Final mark Celery task as finished
+    if progress_key:
+        celery_redis_client.set(progress_key, json.dumps({
+            'current': total,
+            'total': total,
+            'finished': True
+        }))
 
     return export_items
 
@@ -169,36 +199,46 @@ def is_match(discogs_artist, discogs_album, spotify_artist, spotify_album, thres
 
     combined_discogs = f"{d_artist} {d_album}"
     combined_spotify = f"{s_artist} {s_album}"
-    print(f"comparing: {combined_discogs} with {combined_spotify}...")
+    logger.debug(
+        "Comparing sanitized strings: %s with %s", combined_discogs, combined_spotify)
 
     # Base comparison
     base_ratio = fuzz.ratio(combined_discogs, combined_spotify)
+    logger.debug("String comparison ratio: %s", base_ratio)
 
     # Looser comparison (to catch e.g. different artist name or title formatting)
     token_ratio = fuzz.token_set_ratio(combined_discogs, combined_spotify)
+    logger.debug(
+        "Tokenised string comparison ratio: %s", token_ratio)
 
     # Compare album titles (to catch cases where specified artists differ but album title matches almost exactly)
     title_ratio = fuzz.ratio(d_album, s_album)
+    logger.debug(
+        "Album title only comparison ratio: %s", title_ratio)
 
     # Compare unsanitized titles in case some essential elements were removed
     original_title_ratio = fuzz.ratio(discogs_album, spotify_album)
+    logger.debug(
+        "Unsantised album title only comparison ratio: %s", title_ratio)
 
-    # Prioritize token ratio only if base is below a certain point
+    # Prioritize type of ratio based on criteria
     if base_ratio >= threshold:
-        print(f"using base ratio: {base_ratio}")
+        logger.debug(
+            "Found matching using string comparison ratio")
         return True, base_ratio
     elif token_ratio > 92 and base_ratio >= 70:
-        print(f"using token ratio: token:{token_ratio}, base: {base_ratio}")
+        logger.debug(
+            "Found matching using tokenised string comparison ratio")
         return True, token_ratio
     elif title_ratio > 85 and token_ratio >= 70:
-        print(
-            f"using title ratio: title: {title_ratio}, token:{token_ratio}, base: {base_ratio}")
+        logger.debug(
+            "Found matching using title only string comparison ratio")
         return True, title_ratio
     elif original_title_ratio > 85 and token_ratio >= 70:
-        print(
-            f"using original title ratio: org_title: {original_title_ratio}, title: {title_ratio}, token:{token_ratio}, base: {base_ratio}")
+        logger.debug(
+            "Found matching using unsanitised title string comparison ratio")
         return True, original_title_ratio
     else:
-        print(
-            f"Not passed with scores: org_title: {original_title_ratio}, title: {title_ratio} token:{token_ratio}, base: {base_ratio}")
+        logger.debug(
+            "No comparison ratio returned a good match for '%s - %s'", discogs_album, discogs_artist)
         return False, base_ratio
