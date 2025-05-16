@@ -20,7 +20,7 @@ def init_logging(app=None):
     Set up logging so all log levels go to stdout, removes default handlers, and can be called from create_app.
     If an app is provided, also configures app.logger.
     """
-    # Remove all handlers associated with the root logger object to avoid duplicate logs
+    # Remove all root logger handlers to avoid duplicate logs
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
 
@@ -32,11 +32,9 @@ def init_logging(app=None):
     root = logging.getLogger()
     root.handlers = []
     root.addHandler(handler)
-    root.setLevel(logging.DEBUG)
 
     if app is not None:
-        app.logger.handlers = []
-        app.logger.addHandler(handler)
+        app.logger.propagate = True
         app.logger.setLevel(logging.DEBUG)
 
 
