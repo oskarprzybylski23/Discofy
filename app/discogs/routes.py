@@ -39,10 +39,10 @@ def get_library():
         discogs_access_token = session_data['discogs_access_token']
         discogs_access_token_secret = session_data['discogs_access_token_secret']
 
-        output = discogs.import_library(
+        library = discogs.import_library(
             discogs_access_token, discogs_access_token_secret)
 
-        return jsonify(output)
+        return jsonify({"folders": library})
 
     except Exception as e:
         current_app.logger.error(
