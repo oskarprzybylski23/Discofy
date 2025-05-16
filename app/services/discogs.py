@@ -180,3 +180,10 @@ def sanitise_string(string):
     Util function for removing unnecessary characters from string that Discogs adds
     """
     return re.sub(r'\s*\(\d+\)$', '', string.strip())
+
+def getCurrentUser(discogs_access_token, discogs_access_token_secret):
+    me = initialize_discogs_client(
+        discogs_access_token, discogs_access_token_secret)
+    
+    return me
+    
