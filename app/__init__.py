@@ -1,10 +1,16 @@
+import sys
+import logging
+
 from flask import Flask
 from config import Config
-from .extensions import session, init_cors, init_security, init_redis
+from .extensions import session, init_cors, init_security, init_redis, init_logging
 
 
 def create_app(config=Config):
     app = Flask(__name__)
+
+    # Set up logging using the extensions module
+    init_logging(app)
     app.logger.info("Creating Flask App")
 
     # Load configuration

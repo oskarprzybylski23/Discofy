@@ -4,6 +4,7 @@ from flask_sslify import SSLify
 from flask_talisman import Talisman
 from flask_cors import CORS
 import logging
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,29 @@ session = Session()
 
 # Initialize Redis client
 redis_client = None
+
+
+def init_logging(app=None):
+    """
+    Set up logging so all log levels go to stdout, removes default handlers, and can be called from create_app.
+    If an app is provided, also configures app.logger.
+    """
+    # Remove all root logger handlers to avoid duplicate logs
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+    handler.setFormatter(formatter)
+
+    root = logging.getLogger()
+    root.handlers = []
+    root.addHandler(handler)
+
+    if app is not None:
+        app.logger.propagate = True
+        app.logger.setLevel(logging.DEBUG)
 
 
 def init_redis(app):
