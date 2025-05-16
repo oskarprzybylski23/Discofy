@@ -39,10 +39,10 @@ def get_library():
         discogs_access_token = session_data['discogs_access_token']
         discogs_access_token_secret = session_data['discogs_access_token_secret']
 
-        output = discogs.import_library(
+        library = discogs.import_library(
             discogs_access_token, discogs_access_token_secret)
 
-        return jsonify(output)
+        return jsonify({"folders": library})
 
     except Exception as e:
         current_app.logger.error(
@@ -97,7 +97,9 @@ def get_auth_url():
     discogs_state = str(uuid.uuid4())  # Unique state per request
 
     d = discogs_client.Client(
-        'discofy/0.1 +discofy.onrender.com', consumer_key=current_app.config.get('DISCOGS_CONSUMER_KEY'), consumer_secret=current_app.config.get('DISCOGS_CONSUMER_SECRET')
+        'discofy/0.1 +discofy.onrender.com',
+        consumer_key=current_app.config.get('DISCOGS_CONSUMER_KEY'),
+        consumer_secret=current_app.config.get('DISCOGS_CONSUMER_SECRET')
     )
 
     # Manually append state to callback URL
@@ -223,9 +225,18 @@ def check_authorization():
     session_data = json.loads(session_data_str)
 
     if 'discogs_access_token' in session_data and 'discogs_access_token_secret' in session_data:
+        discogs_access_token = session_data['discogs_access_token']
+        discogs_access_token_secret = session_data['discogs_access_token_secret']
+        # Retrieve connected user data
+        current_user = discogs.getCurrentUser(discogs_access_token, discogs_access_token_secret)
         current_app.logger.info(
-            "User connected to Discogs successfully")
-        return jsonify({'authorized': True})
+            "User %s connected to Discogs successfully", current_user.username)
+        return jsonify({
+            'authorized': True,
+            'username': current_user.username,
+            'user_id': current_user.id,
+            'url': current_user.url
+        })
     else:
         return jsonify({'authorized': False})
 

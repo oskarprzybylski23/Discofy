@@ -73,12 +73,9 @@ def import_library(discogs_access_token, discogs_access_token_secret):
             "Failed to authenticate Discogs client in import_library.")
         return {"error": "Failed to authenticate with Discogs."}
 
-    username = me.username
-    user_url = me.url
-
     # Import library folders
     current_app.logger.info(
-        "Importing library folders for user %s", username)
+        "Importing library folders for user %s", me.username)
     folders = me.collection_folders
     library = []
     for index, folder in enumerate(folders, start=1):
@@ -93,19 +90,11 @@ def import_library(discogs_access_token, discogs_access_token_secret):
 
         library.append(folder_item)
 
-    # Return user details and list of library folders
-    response = {
-        'user_info': {
-            'username': username,
-            'url': user_url
-        },
-        'library': library
-    }
-
+    # Return list of library folders
     current_app.logger.info(
         "Successfully imported %d library folders", len(library))
 
-    return response
+    return library
 
 
 def import_collection(discogs_access_token, discogs_access_token_secret, folder_id=0):
@@ -180,3 +169,10 @@ def sanitise_string(string):
     Util function for removing unnecessary characters from string that Discogs adds
     """
     return re.sub(r'\s*\(\d+\)$', '', string.strip())
+
+def getCurrentUser(discogs_access_token, discogs_access_token_secret):
+    me = initialize_discogs_client(
+        discogs_access_token, discogs_access_token_secret)
+    
+    return me
+    
